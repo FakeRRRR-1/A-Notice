@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>备忘录</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="/static/add.css" rel="stylesheet">
+</head>
+<body>
+    {% csrf_token %}
+    {% verbatim %}
+    <div id="app" class="container">
+        <h1 class="title">📝 备忘录</h1>
+        <div class="input-group">
+            <input type="text" placeholder="请输入新任务..." v-model="task" :class="{ error: showError }" @keyup.enter="submit">
+            <button class="submit-btn" @click="submit">
+                <i class="fas fa-plus"></i> 添加
+            </button>
+            <button class="clear-btn" @click="ClearList">
+                <i class="fas fa-trash-alt"></i> 清空
+            </button>
+        </div>
+        <p class="error-message" v-if="showError">
+            <i class="fas fa-exclamation-triangle"></i> 请输入任务内容！
+        </p>
+        
+        <div class="content-area">
+            <div v-if="list.length > 0" >
+                <table>
+                    <tr v-for="(item, index) in list" :key="item.databaseid" :class="{ completed: item.completed }">
+                        <td>
+                            <input v-if="item.editing" class="edit-input" v-model="item.name" @keyup.enter="saveEdit(item)" @blur="saveEdit(item)">
+                            <span v-else @click="startEdit(item)">{{ index + 1 }}. {{ item.name }}</span>
+                        </td>
+                        <td>
+                            <!-- 时间组件 -->
+                            <i class="fas fa-clock"></i> {{ item.createdAt | formatDate }}          
+                        </td>
+                        <td>
+                            <!-- 完成组件 -->
+                            <input type="checkbox" v-model="item.completed">
+                        </td>
+                        <td>
+                            <!-- 删除组件 -->
+                            <button class="delete-btn" @click="del(item.databaseid)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div v-else class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <p>暂无任务</p>
+                <small>添加你的第一个任务开始管理吧！</small>
+            </div>
+        </div>
+    </div>
+    {% endverbatim %}
+
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                task: '',
+                showError: false,
+                list: [],
+            },
+            filters: {
+                formatDate(value) {
+                    if (!value) return '';
+                    return value;
+                }
+            },
+            created() {
+                this.getalldata();
+            },
+            methods: {
+                async getalldata() {
+                    const response = await fetch('/api/notice/');
+                    if (!response.ok) {
+                        console.error('获取数据失败:', response.statusText);
+                        return;
+                    }
+                    const data = await response.json();
+                    if (data.notices && Array.isArray(data.notices)) {
+                        this.list = data.notices.map(item => ({
+                            id: item.id,
+                            databaseid: item.id, // 假设返回的ID与数据库中的ID一致
+                            name: item.text,
+                            completed: false, // 默认未完成
+                            editing: false,
+                            createdAt: new Date().toISOString().slice(0, 16).replace('T', ' ')
+                        }));
+                    } else {
+                        console.error('数据格式不正确:', data);
+                    }
+                },
+                async submit() {
+                    if (this.task.trim()) {
+                        this.showError = false;
+
+                        try{
+                            const response = await fetch('/api/notice/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                },
+                                body: JSON.stringify({ text: this.task }),
+
+                            });
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                console.error('提交任务失败:', errorData);
+                                alert('提交任务失败，请稍后再试。');
+                                return;
+                            }
+                            const data = await response.json();
+                           // debugger
+                            const databaseid = data.notices.id; // 返回数据库中的id
+                            console.log('任务提交成功，ID:', databaseid);
+                            const newId = this.list.length > 0 ? Math.max(...this.list.map(item => item.id)) + 1 : 1;
+                            const now = new Date();
+                            const offset = new Date().getTimezoneOffset() * 60000; // 转换为毫秒
+                            const localTime = new Date(Date.now() - offset).toISOString().slice(0, 16).replace('T', ' ');
+                            this.list.push({ 
+                                id: newId, 
+                                databaseid: databaseid,
+                                name: this.task, 
+                                completed: false, 
+                                editing: false, 
+                                createdAt: localTime
+                            });
+                            this.task = '';
+                        }catch (error) {
+                            console.error('提交任务时发生错误:', error);
+                        }
+                    } 
+                    else {
+                        this.showError = true;
+                    }
+                },
+                async del(id) {
+                    //console.log('删除任务ID:', id);
+                    try {
+                        const response = await fetch(`/api/notice/${id}/`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            }
+                        });
+                        if (response.ok) {
+                            this.list = this.list.filter(item => item.databaseid !== id);
+                            //console.log('任务删除成功,ID:', this.list.databaseid);
+                        } else {
+                            const errorData = await response.json();
+                            console.error('删除任务失败:', errorData);
+                            alert('删除任务失败，请稍后再试。');
+                        }
+                    } catch (error) {
+                        console.error('删除任务时发生错误:', error);
+                    }
+                },
+                async ClearList() {
+                    /*for (let i = 0; i < this.list.length; i++) {
+                        this.del(this.list[i].databaseid);
+                        console.log('清空任务ID:', this.list[i].databaseid);
+                    }*/
+                    if (this.list.length === 0) {
+                        alert('没有任务可以清空！');
+                        return;
+                    }
+    
+                    if (!confirm('确定要清空所有任务吗？')) {
+                        return;
+                    }
+                    try {
+                        const deletePromises = this.list.map(item => 
+                            fetch(`/api/notice/${item.databaseid}/`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                                }
+                            })
+                        );
+        
+                        const responses = await Promise.allSettled(deletePromises);
+
+                        await this.getalldata();
+
+                        /*let successCount = 0;
+                        let failCount = 0;
+        
+                        responses.forEach((result, index) => {
+                            if (result.status === 'fulfilled' && result.value.ok) {
+                                successCount++;
+                            } 
+                            else {
+                                failCount++;
+                            }
+                        });
+        
+                        if (failCount === 0) {
+                            this.list = [];
+                            console.log(`所有任务已清空，共删除 ${successCount} 个任务`);
+                        } 
+                        else {
+                            await this.getalldata(); // 重新获取数据保持同步
+                            alert(`清空完成，但有 ${failCount} 个任务删除失败`);
+                        }*/
+                    } 
+                    catch (error) {
+                        console.error('清空任务时发生错误:', error);        
+                    }
+                },
+                startEdit(item) {
+                    //将所有editing状态设置为false
+                    this.list.forEach(i => i.editing = false);
+                    item.editing = true;
+                    this.$nextTick(() => {
+                        // 查找当前编辑的输入框并聚焦
+                        const editInputs = this.$el.querySelectorAll('.edit-input');
+                        if (editInputs.length > 0) {
+                            editInputs[editInputs.length - 1].focus();
+                        }
+                    });
+                },
+                saveEdit(item) {
+                    if (item.name.trim()) {
+                        item.editing = false;
+                    } else {
+                        this.del(item.databaseid);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
