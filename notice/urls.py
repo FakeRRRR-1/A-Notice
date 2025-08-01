@@ -22,9 +22,19 @@ from app.views import NoticeData, NoticeDataDerail
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+    path('', views.login),
+
     path('notice/', views.adds),
+    
+    path('register/', views.register),
 
     path('api/notice/', NoticeData.as_view()),
     
     path('api/notice/<int:pk>/', NoticeDataDerail.as_view()),
+    
+    path('api/register/', views.RegisterDataView.as_view()),
+    
+    path('api/sendemail/', views.sendEmail.as_view()),
+    
+    path('api/login/', views.LoginDataView.as_view()),
 ]

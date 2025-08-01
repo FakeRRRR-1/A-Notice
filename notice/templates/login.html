@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欢迎登录</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        .username {
+            width: 240px;
+            height: 40px;
+            margin-top: 20px;
+        }
+        .password {
+            width: 240px;
+            height: 40px;                          
+            margin-top: 10px;
+        }
+        .login {
+            width: 400px;
+            height: 300px;
+            margin: 250px  1300px;
+            text-align: center;
+            background-color: rgb(176, 200, 247, 0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, .12),0 0 6px rgba(0,0,0,.04);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        body {
+            background-color: rgb(153, 182, 245, 0.1);
+            margin: 0;
+            padding: 0;
+        }
+        html,#app {
+            margin: 0;
+            padding: 0;
+        }
+        .el-menu-demo {
+            background-color: rgb(84, 84, 114, 0.1);
+            border-radius: 2px;
+            width: 100%;
+            display: flex !important;
+            border-bottom: 0;
+        }
+        .login-button {
+            width: 240px;
+            height: 40px;
+            margin-top: 20px;
+            margin-left: 15px;
+        }
+    </style>
+</head> 
+<body>
+    <div id="app">
+        <!-- <h1>欢迎登录</h1> -->
+        <div>
+            <el-menu mode="horizontal" default-active="1" class="el-menu-demo">
+                <el-menu-item index="1">登录</el-menu-item>
+                <el-menu-item index="2" @click="goToRegister">注册</el-menu-item>
+            </el-menu>
+        </div>
+        <div class="login">
+            <h1>欢迎登录</h1>
+            <i class="el-icon-user"></i>
+            <el-input placeholder="请输入用户名" class="username" v-model="username" clearable></el-input><br>
+            <i class="el-icon-lock"></i>
+            <el-input placeholder="请输入密码" class="password" v-model="password" show-password clearable></el-input><br>
+            <el-button type="primary" class="login-button" @click="login">登录</el-button>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script>
+        const app = new Vue({
+            el: '#app',
+            data: {
+                username: '',
+                password: '',
+            },
+            methods: {
+                goToRegister() {
+                    window.location.href = './register/';
+                },
+                async login() {
+                    try {
+                        const response = await fetch('/api/login/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                username: this.username,
+                                password: this.password
+                            })
+                        });
+                        const result = await response.json();
+                        
+                        if(response.ok){
+                            this.$message.success("登录成功！")
+                            window.location.href='/notice/'
+                        }
+                        else{
+                            if(result.error === "用户名不存在") this.$message.error("用户名不存在！")
+
+                            else if(result.error === "密码不正确") this.$message.error("密码不正确！")
+                        }
+                    }
+                    catch(error){
+                        this.$message.error('登录失败，请检查网络后稍后再试');
+                    }
+                }
+            }
+        });
+        
+    </script>
+</body>
+</html>

@@ -40,8 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app',
-    'rest_framework'
-    'login',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -137,3 +136,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# 发送邮箱设置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.qq.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = '775213111@qq.com' 
+EMAIL_HOST_PASSWORD = 'ejzmofoennftbdia'   # 邮箱生成的授权码  
+DEFAULT_FROM_EMAIL = '775213111@qq.com'
