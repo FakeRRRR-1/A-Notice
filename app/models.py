@@ -1,8 +1,12 @@
 from django.db import models
 
+import uuid
+
 # Create your models here.
 
 class Notice(models.Model):
+    
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # 使用UUID作为主键，默认值为自动生成的UUID，且不可编辑
     
     text = models.CharField( "内容", max_length=50 )      # verbose_name="内容" 定义了在数据表中显示的名称
 
@@ -27,7 +31,7 @@ class LoginData(models.Model):
     
     updated_at = models.DateTimeField(auto_now=True, verbose_name="更新时间")
     
-    
+    token = models.CharField(max_length=255, blank=True, null=True, verbose_name="令牌")
     
     class Meta:
         db_table = 'login_data'

@@ -1,4 +1,4 @@
-from django.shortcuts import render,HttpResponse
+from django.shortcuts import render
 
 from rest_framework.views import APIView
 
@@ -12,8 +12,13 @@ from .models import Notice, LoginData, EmailCode
 
 from django.core.mail import send_mail
 
+from rest_framework.permissions import IsAuthenticated
+
+from rest_framework.authentication import SessionAuthentication 
+
 import string
 import random
+import uuid
 # Create your views here.
 
 def adds(request):
@@ -27,9 +32,12 @@ def register(request):
 
 class NoticeSerializers(serializers.ModelSerializer):
     
+    # text = serializers.CharField()
+    
+    # user_id = serializers.IntegerField(write_only=True)
     class Meta:
         model = Notice
-        fields = '__all__'
+        fields='__all__'
         
 class RegisterSerializers(serializers.ModelSerializer):
     
@@ -47,17 +55,19 @@ class EmailCodeSerializers(serializers.ModelSerializer):
         
 class LoginSerializers(serializers.Serializer):
     
+    id = serializers.IntegerField(read_only=True)
+    
     username = serializers.CharField(max_length=30)
     
     password = serializers.CharField(max_length=128)
+    
+    # updated_at = serializers.DateTimeField(read_only=True)
 
 class NoticeData(APIView):
     
     def post(self, request):
         
         s = NoticeSerializers(data=request.data)
-        
-        # print(request.data)
         
         if not s.is_valid():
             # print("验证失败:",s.errors)
@@ -69,6 +79,7 @@ class NoticeData(APIView):
     
     def get(self, request):
         # 获取所有的Notice数据
+        
         notices = Notice.objects.all()
         s = NoticeSerializers(notices, many=True)
         # return Response(s.data, status=200)
@@ -122,27 +133,35 @@ class LoginDataView(APIView):
             print(ls.validated_data)
             print(ls.errors)
             return Response({"error": ls.errors}, status=400)
-        
         else:
-            
             if not LoginData.objects.filter(username=ls.validated_data.get('username')).exists():
-                return Response({"用户名不存在"}, status=400)
+                return Response({"error":"用户名不存在"}, status=400)
             
             elif not LoginData.objects.filter(password=ls.validated_data.get('password')).exists():
-                return Response({"密码不正确"}, status=400)
+                return Response({"error":"密码输入不正确"}, status=400)
             
-            else:          
-                return Response({"登录成功"}, status=201)
+            else:         
+                return Response({"message": "登陆成功", "id": LoginData.objects.get(username=ls.validated_data.get('username')).id}, status=201)
                   
 class NoticeDataDerail(APIView):
     
-    def get(self, request, pk):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, userID):
+        # print("!!!!!!!!!!!!!!!!!!!!!")
         # 获取单个Notice数据
+        # print(userID)   
+        # self.dispatch()
+        print("authentication_classes:", self.authentication_classes)
+        print("request.user:", request.user)
+        print("request.auth:", request.auth)
+        
         try:
-            notice = Notice.objects.get(pk=pk)
-            s = NoticeSerializers(notice)
+            notice = Notice.objects.filter(user=userID)
+            s = NoticeSerializers(notice, many=True)
             return Response(s.data, status=200)
-        except Notice.DoesNotExist:
+        except Notice.DoesNotExist:  
             return Response({"error": "找不到数据"}, status=404)
     
     def put(self, request, pk):
@@ -192,5 +211,19 @@ class sendEmail(APIView):
             EmailCode.objects.create(**emailData)
             
             return Response({"message": "验证码已发送"}, status=200)
+        
         except Exception as e:
             return Response({"error": str(e)}, status=500)
+        
+class LoginDataDerial(APIView):
+    
+    def get(self, request, pk):
+        # 获取单个LoginData数据
+        try:
+            login_data = LoginData.objects.get(pk=pk)
+            s = RegisterSerializers(login_data)
+            return Response(s.data, status=200)
+        except LoginData.DoesNotExist:
+            return Response({"error": "找不到数据"}, status=404)
+        
+        

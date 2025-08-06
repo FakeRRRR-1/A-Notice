@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,63 +8,257 @@
     <style>
         .username {
             width: 240px;
-            height: 40px;
-            margin-top: 20px;
+            height: 50px;
+            margin-top: 5px;
         }
         .password {
             width: 240px;
-            height: 40px;                          
+            height: 50px;                          
             margin-top: 10px;
+        }
+        .username input, .password input {
+            height: 100%;  /* 输入区域占满父容器 */
+        }
+        .el-icon-user, .el-icon-lock, .el-icon-message, .el-icon-more-outline {
+            font-size: 20px;
+            margin-left: auto;
         }
         .login {
             width: 400px;
             height: 300px;
-            margin: 250px  1300px;
+            margin: 200px auto;
             text-align: center;
             background-color: rgb(176, 200, 247, 0.1);
             box-shadow: 0 8px 16px rgba(0, 0, 0, .12),0 0 6px rgba(0,0,0,.04);
             border-radius: 10px;
             border: 1px solid rgba(0, 0, 0, 0.1);
+            /* 页面加载时的渐入动画 */
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease-out forwards, floatCard 3s ease-in-out infinite 0.8s;
+            transition: transform 0.3s ease;
         }
+        
+        /* 页面加载时的渐入动画 */
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0px);
+            }
+        }
+        
         body {
             background-color: rgb(153, 182, 245, 0.1);
             margin: 0;
             padding: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        html,#app {
+        
+        html, #app {
             margin: 0;
             padding: 0;
         }
-        .el-menu-demo {
-            background-color: rgb(84, 84, 114, 0.1);
-            border-radius: 2px;
-            width: 100%;
+        
+        /* 美化导航条 */
+        .beautiful-navbar {
+            background: linear-gradient(90deg, rgba(84, 84, 114, 0.15) 0%, rgba(176, 200, 247, 0.1) 100%);
+            backdrop-filter: blur(15px);
+            border: none;
+            border-bottom: 1px solid rgba(176, 200, 247, 0.3);
+            box-shadow: 0 8px 32px rgba(84, 84, 114, 0.15), 0 2px 8px rgba(0, 0, 0, 0.05);
+            height: 80px;
             display: flex !important;
-            border-bottom: 0;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 50px;
+            position: relative;
+            overflow: hidden;
         }
+        
+        /* 导航条背景装饰 - 流光动画 */
+        .beautiful-navbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(176, 200, 247, 0.2), transparent);
+            animation: shimmer 4s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+        
+        /* Logo区域和导航菜单整体容器 */
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            z-index: 2;
+        }
+        
+        /* Logo区域 */
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-img {
+            width: 80px;
+            height: 80px;           
+            transition: transform 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .logo-img:hover {
+            transform: rotate(5deg) scale(1.1);
+        }
+        
+        .logo-text {
+            color: rgb(84, 84, 114);
+            font-size: 28px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            letter-spacing: 2px;
+        }
+        
+        /* 导航菜单区域 */
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            z-index: 2;
+        }
+        
+        /* 重写Element UI菜单项样式 */
+        .beautiful-navbar .el-menu-item {
+            background: rgba(176, 200, 247, 0.2) !important;
+            border: 1px solid rgba(176, 200, 247, 0.3) !important;
+            border-radius: 25px !important;
+            color: rgb(84, 84, 114) !important;
+            font-weight: 500 !important;
+            padding: 0 25px !important;
+            margin: 0 5px !important;
+            height: 45px !important;
+            line-height: 43px !important;
+            transition: all 0.3s ease !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+        
+        .beautiful-navbar .el-menu-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(176, 200, 247, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .beautiful-navbar .el-menu-item:hover {
+            background: rgba(176, 200, 247, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+            border-color: rgba(176, 200, 247, 0.5) !important;
+        }
+        
+        .beautiful-navbar .el-menu-item:hover::before {
+            left: 100%;
+        }
+        
+        .beautiful-navbar .el-menu-item.is-active {
+            background: rgba(176, 200, 247, 0.5) !important;
+            border-color: rgba(176, 200, 247, 0.7) !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        /* 登录按钮美化 */
         .login-button {
             width: 240px;
             height: 40px;
             margin-top: 20px;
             margin-left: 15px;
+            background: linear-gradient(45deg, rgb(176, 200, 247), rgb(153, 182, 245)) !important;
+            border: none !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            letter-spacing: 1px !important;
+            transition: all 0.3s ease !important;
+            color: rgb(84, 84, 114) !important;
+        }
+        
+        .login-button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(176, 200, 247, 0.4) !important;
+        }
+        
+        /* 输入框美化 */
+        .login .el-input__inner {
+            border-radius: 10px !important;
+            border: 1px solid rgba(176, 200, 247, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .login .el-input__inner:focus {
+            border-color: rgb(176, 200, 247) !important;
+            box-shadow: 0 0 0 2px rgba(176, 200, 247, 0.2) !important;
+        }
+        
+        /* 标题美化 */
+        .login h1 {
+            background: linear-gradient(45deg, rgb(0, 0, 0), rgb(149, 149, 150));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+            font-weight: 700;
         }
     </style>
 </head> 
 <body>
     <div id="app">
-        <!-- <h1>欢迎登录</h1> -->
         <div>
-            <el-menu mode="horizontal" default-active="1" class="el-menu-demo">
-                <el-menu-item index="1">登录</el-menu-item>
-                <el-menu-item index="2" @click="goToRegister">注册</el-menu-item>
+            <el-menu mode="horizontal" default-active="1" class="beautiful-navbar">
+                <div class="nav-left">
+                    <div class="logo-section">
+                        <div class="logo-img">
+                            <img src="/static/img/ChatGPT Image 2025年8月5日 10_46_55.png" alt="Logo">
+                        </div>
+                        <div class="logo-text">备忘录</div>
+                    </div>
+                    <div class="nav-menu" style="margin-left: 120px;">
+                        <el-menu-item index="1">登录</el-menu-item>
+                        <el-menu-item index="2" @click="goToRegister">注册</el-menu-item>
+                    </div>
+                </div>
             </el-menu>
         </div>
         <div class="login">
             <h1>欢迎登录</h1>
             <i class="el-icon-user"></i>
-            <el-input placeholder="请输入用户名" class="username" v-model="username" clearable></el-input><br>
+            <el-input placeholder="请输入用户名" class="username" v-model="username" clearable @keyup.enter.native="EnterPassword"></el-input><br>
             <i class="el-icon-lock"></i>
-            <el-input placeholder="请输入密码" class="password" v-model="password" show-password clearable></el-input><br>
+            <el-input placeholder="请输入密码" class="password" v-model="password" show-password clearable @keyup.enter.native="login" ref="passwordInput"></el-input><br>
             <el-button type="primary" class="login-button" @click="login">登录</el-button>
         </div>
     </div>
@@ -78,36 +272,49 @@
                 password: '',
             },
             methods: {
+                EnterPassword() {
+                    this.$refs.passwordInput.focus();
+                },
                 goToRegister() {
                     window.location.href = './register/';
                 },
                 async login() {
-                    try {
-                        const response = await fetch('/api/login/', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': '{{ csrf_token }}'
-                            },
-                            body: JSON.stringify({
-                                username: this.username,
-                                password: this.password
-                            })
-                        });
-                        const result = await response.json();
-                        
-                        if(response.ok){
-                            this.$message.success("登录成功！")
-                            window.location.href='/notice/'
-                        }
-                        else{
-                            if(result.error === "用户名不存在") this.$message.error("用户名不存在！")
-
-                            else if(result.error === "密码不正确") this.$message.error("密码不正确！")
-                        }
+                    if(!this.username){
+                        this.$message.error("请输入用户名")
                     }
-                    catch(error){
-                        this.$message.error('登录失败，请检查网络后稍后再试');
+                    else if(!this.password){
+                        this.$message.error("请输入密码")
+                    }
+                    else{
+                        try {
+                            const response = await fetch('/api/login/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                },
+                                body: JSON.stringify({
+                                    username: this.username,
+                                    password: this.password,
+                                })
+                            });
+                            const result = await response.json();
+                        
+                            if(response.ok){
+                                this.$message.success("登录成功！")
+                                window.location.href=`/notice/?id=${result.id}`
+                            }
+                            else{
+                            //    console.log(result.error)
+                                if(result.error === "用户名不存在") this.$message.error("用户名不存在！")
+
+                                else if(result.error === "密码输入不正确") this.$message.error("密码输入不正确！")
+                            }
+                        }   
+                        catch(error){
+                            this.$message.error('登录失败，请检查网络后稍后再试');
+                        }
+
                     }
                 }
             }

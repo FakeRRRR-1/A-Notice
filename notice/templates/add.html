@@ -6,56 +6,550 @@
     <title>备忘录</title>
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="/static/add.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!-- css样式 -->
+    <style>     
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: rgb(153, 182, 245, 0.1);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, #app {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 美化导航条 */
+        .beautiful-navbar {
+            background: linear-gradient(90deg, rgba(84, 84, 114, 0.15) 0%, rgba(176, 200, 247, 0.1) 100%);
+            backdrop-filter: blur(15px);
+            border: none;
+            border-bottom: 1px solid rgba(176, 200, 247, 0.3);
+            box-shadow: 0 8px 32px rgba(84, 84, 114, 0.15), 0 2px 8px rgba(0, 0, 0, 0.05);
+            height: 80px;
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 50px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+        
+        /* 导航条背景装饰 - 流光动画 */
+        .beautiful-navbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(176, 200, 247, 0.2), transparent);
+            animation: shimmer 4s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+        
+        /* Logo区域和导航菜单整体容器 */
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            z-index: 2;
+        }
+        
+        /* Logo区域 */
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-img {
+            width: 80px;
+            height: 80px;           
+            transition: transform 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .logo-img:hover {
+            transform: rotate(5deg) scale(1.1);
+        }
+        
+        .logo-text {
+            color: rgb(84, 84, 114);
+            font-size: 28px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            letter-spacing: 2px;
+        }
+        
+        /* 导航菜单区域 */
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            z-index: 2;
+        }
+        
+        /* 重写Element UI菜单项样式 */
+        .beautiful-navbar .el-menu-item {
+            background: rgba(176, 200, 247, 0.2) !important;
+            border: 1px solid rgba(176, 200, 247, 0.3) !important;
+            border-radius: 25px !important;
+            color: rgb(84, 84, 114) !important;
+            font-weight: 500 !important;
+            padding: 0 25px !important;
+            margin: 0 5px !important;
+            height: 45px !important;
+            line-height: 43px !important;
+            transition: all 0.3s ease !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+        
+        .beautiful-navbar .el-menu-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(176, 200, 247, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .beautiful-navbar .el-menu-item:hover {
+            background: rgba(176, 200, 247, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+            border-color: rgba(176, 200, 247, 0.5) !important;
+        }
+        
+        .beautiful-navbar .el-menu-item:hover::before {
+            left: 100%;
+        }
+        
+        .beautiful-navbar .el-menu-item.is-active {
+            background: rgba(176, 200, 247, 0.5) !important;
+            border-color: rgba(176, 200, 247, 0.7) !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 800px;
+            height: 600px;
+            margin: 0 auto;
+            background-color: rgb(176, 200, 247, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, .12), 0 0 6px rgba(0,0,0,.04);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+             /* 页面加载时的渐入动画 */
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease-out forwards, floatCard 3s ease-in-out infinite 0.8s;
+            transition: transform 0.3s ease;
+        }
+         
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0px);
+            }
+        }
+        
+        /* 悬浮动画关键帧 */
+        
+        
+        .title {
+            text-align: center;
+            background: linear-gradient(45deg, rgb(0, 0, 0), rgb(149, 149, 150));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .task-input {
+            flex: 1;
+            min-width: 250px;
+            font-size: 16px;
+        }
+
+        .task-input .el-input__inner {
+            height: 50px;
+            border-radius: 20px;
+            border: 1px solid rgba(176, 200, 247, 0.3);
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .task-input .el-input__inner:focus {
+            border-color: rgb(176, 200, 247);
+            box-shadow: 0 0 0 2px rgba(176, 200, 247, 0.2);
+        }
+
+        .task-input.error .el-input__inner {
+            border-color: #F56C6C;
+        }
+
+        .edit-input {
+            background: #f8f9fa;
+            border: 2px solid rgb(176, 200, 247);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+        }
+
+        .action-btn {
+            height: 50px;
+            border-radius: 10px;
+            padding: 0 25px;
+            font-weight: 600;
+            border: none !important;
+            transition: all 0.3s ease !important;
+            font-size: 16px;
+        }
+        
+        .action-btn.el-button--primary {
+            background: linear-gradient(45deg, rgb(176, 200, 247), rgb(153, 182, 245)) !important;
+            color: rgb(84, 84, 114) !important;
+        }
+        
+        .action-btn.el-button--primary:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(176, 200, 247, 0.4) !important;
+        }
+        
+        .action-btn.el-button--danger {
+            background: linear-gradient(45deg, #F56C6C, #F78989) !important;
+            color: white !important;
+        }
+        
+        .action-btn.el-button--danger:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(245, 108, 108, 0.4) !important;
+        }
+
+        .error-message {
+            color: #F56C6C;
+            font-size: 14px;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(245, 108, 108, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #F56C6C;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .content-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content-area::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        .content-area::-webkit-scrollbar-thumb {
+            background: rgba(176, 200, 247, 0.5);
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        tr {
+            transition: all 0.3s ease;
+        }
+
+        tr:nth-child(even) {
+            background: rgba(176, 200, 247, 0.05);
+        }
+
+        tr:hover {
+            background: rgba(176, 200, 247, 0.15);
+        }
+
+        tr.completed {
+            opacity: 0.6;
+            background: rgba(103, 194, 58, 0.1);
+        }
+
+        tr.completed span {
+            text-decoration: line-through;
+            color: #909399;
+        }
+
+        td {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            vertical-align: middle;
+        }
+
+        td:first-child {
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+            min-width: 200px;
+        }
+
+        td:first-child:hover {
+            color: rgb(176, 200, 247);
+        }
+
+        td:nth-child(2) {
+            color: #909399;
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        td:nth-child(3) {
+            text-align: center;
+            width: 80px;
+        }
+
+        td:nth-child(4) {
+            text-align: center;
+            width: 80px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: rgb(176, 200, 247);
+            cursor: pointer;
+        }
+
+        .delete-btn {
+            background: #F56C6C;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-btn:hover {
+            background: #F78989;
+            transform: scale(1.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #909399;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+            color: rgb(176, 200, 247);
+        }
+
+        .empty-state p {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .empty-state small {
+            opacity: 0.7;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                width: calc(100vw - 20px);
+                height: calc(100vh - 80px);
+                padding: 20px;
+                margin: 0;
+            }
+
+            .title {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
+
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+                margin-bottom: 15px;
+            }
+
+            .task-input {
+                min-width: auto;
+                margin-bottom: 10px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            td {
+                padding: 12px 8px;
+            }
+
+            td:first-child {
+                min-width: auto;
+            }
+
+            td:nth-child(2) {
+                min-width: auto;
+                font-size: 12px;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        tr {
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
 </head>
 <body>
     {% csrf_token %}
     {% verbatim %}
-    <div id="app" class="container">
-        <h1 class="title">📝 备忘录</h1>
-        <div class="input-group">
-            <input type="text" placeholder="请输入新任务..." v-model="task" :class="{ error: showError }" @keyup.enter="submit">
-            <button class="submit-btn" @click="submit">
-                <i class="fas fa-plus"></i> 添加
-            </button>
-            <button class="clear-btn" @click="ClearList">
-                <i class="fas fa-trash-alt"></i> 清空
-            </button>
+    <div id="app">
+        <!-- 导航菜单 -->
+        <div>
+            <el-menu mode="horizontal" default-active="2" class="beautiful-navbar">
+                <div class="nav-left">
+                    <div class="logo-section">
+                        <div class="logo-img">
+                            <img src="/static/img/ChatGPT Image 2025年8月5日 10_46_55.png" alt="Logo">
+                        </div>
+                        <div class="logo-text">备忘录</div>
+                    </div>
+                    <div class="nav-menu" style="margin-left: 120px;">
+                        <el-menu-item index="1" @click="goToLogin">登录</el-menu-item>
+                        <el-menu-item index="2">备忘录</el-menu-item>
+                    </div>
+                </div>
+            </el-menu>
         </div>
-        <p class="error-message" v-if="showError">
-            <i class="fas fa-exclamation-triangle"></i> 请输入任务内容！
-        </p>
-        
-        <div class="content-area">
-            <div v-if="list.length > 0" >
-                <table>
-                    <tr v-for="(item, index) in list" :key="item.databaseid" :class="{ completed: item.completed }">
-                        <td>
-                            <input v-if="item.editing" class="edit-input" v-model="item.name" @keyup.enter="saveEdit(item)" @blur="saveEdit(item)">
-                            <span v-else @click="startEdit(item)">{{ index + 1 }}. {{ item.name }}</span>
-                        </td>
-                        <td>
-                            <!-- 时间组件 -->
-                            <i class="fas fa-clock"></i> {{ item.createdAt | formatDate }}          
-                        </td>
-                        <td>
-                            <!-- 完成组件 -->
-                            <input type="checkbox" v-model="item.completed">
-                        </td>
-                        <td>
-                            <!-- 删除组件 -->
-                            <button class="delete-btn" @click="del(item.databaseid)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                </table>
+
+        <div class="container">
+            <h1 class="title">备忘录</h1>
+            <div class="input-group">
+                <el-input placeholder="请输入新任务..." v-model="task" class="task-input":class="{ error: showError }" @keyup.enter.native="submit" clearable> 
+                </el-input>
+                <el-button type="primary" class="action-btn" @click="submit" icon="el-icon-plus">
+                    添加
+                </el-button>
+                <el-button type="danger" class="action-btn" @click="ClearList" icon="el-icon-delete">
+                    清空
+                </el-button>
             </div>
             
-            <div v-else class="empty-state">
-                <i class="fas fa-clipboard-list"></i>
-                <p>暂无任务</p>
-                <small>添加你的第一个任务开始管理吧！</small>
+            <div class="error-message" v-if="showError">
+                <i class="el-icon-warning"></i> 请输入任务内容！
+            </div>
+            
+            <div class="content-area">
+                <div v-if="list.length > 0">
+                    <table>
+                        <tr v-for="(item, index) in list" :key="item.databaseid" :class="{ completed: item.completed }">
+                            <td>
+                                <input v-if="item.editing" class="edit-input" v-model="item.name" @keyup.enter="saveEdit(item)" @blur="saveEdit(item)">
+                                <span v-else @click="startEdit(item)">{{ index + 1 }}. {{ item.name }}</span>
+                            </td>
+                            <td>
+                                <i class="el-icon-time"></i> {{ item.createdAt | formatDate }}          
+                            </td>
+                            <td>
+                                <input type="checkbox" v-model="item.completed">
+                            </td>
+                            <td>
+                                <button class="delete-btn" @click="del(item.databaseid)">
+                                    <i class="el-icon-delete"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div v-else class="empty-state">
+                    <i class="el-icon-document"></i>
+                    <p>暂无任务</p>
+                    <small>添加你的第一个任务开始管理吧！</small>
+                </div>
             </div>
         </div>
     </div>
@@ -69,6 +563,7 @@
                 task: '',
                 showError: false,
                 list: [],
+                //user_id: '',
             },
             filters: {
                 formatDate(value) {
@@ -77,27 +572,58 @@
                 }
             },
             created() {
+                this.user_id = new URLSearchParams(window.location.search).get('id')
+                this.getUser();
                 this.getalldata();
+                //console.log(this.user_id)
             },
             methods: {
-                async getalldata() {
-                    const response = await fetch('/api/notice/');
-                    if (!response.ok) {
-                        console.error('获取数据失败:', response.statusText);
-                        return;
+                goToLogin() {
+                    window.location.href = '/';
+                },
+                async getUser() {
+                    try{
+                        const response = await fetch('/api/login/');
+                        if(!response.ok){
+                            this.$message.error('获取数据失败');
+                            return;
+                        }
+                        else{                          
+                            const result = await response.json();
+                          //  console.log(result);
+                        }
                     }
-                    const data = await response.json();
-                    if (data.notices && Array.isArray(data.notices)) {
-                        this.list = data.notices.map(item => ({
-                            id: item.id,
-                            databaseid: item.id, // 假设返回的ID与数据库中的ID一致
+                    catch(error){
+                        this.$message.error('请求错误')
+                    }
+                },
+                async getalldata() {
+                    try {
+                        const response = await fetch(`/api/notice/${this.user_id}`);
+                        if (!response.ok) {
+                            this.$message.error('获取数据失败');
+                            return;
+                        }
+                        const data = await response.json();
+
+                        //console.log(data.filter(item => item.user === Number(this.user_id)))   
+
+                        //console.log(typeof this.user_id, typeof data[0].user)
+
+                        filteredData = data.filter(item => item.user === this.user_id)    //获取data中user = this.user_id 的数据
+
+                        this.list = filteredData.map(item => ({
+                            databaseid: item.id,
                             name: item.text,
-                            completed: false, // 默认未完成
+                            completed: item.flag,
                             editing: false,
-                            createdAt: new Date().toISOString().slice(0, 16).replace('T', ' ')
-                        }));
-                    } else {
-                        console.error('数据格式不正确:', data);
+                            createdAt: new Date(item.time).toLocaleString(),
+                            userID: item.userID
+                        }))
+
+                    } catch (error) {
+                        //console.log(error)
+                        return;
                     }
                 },
                 async submit() {
@@ -105,81 +631,85 @@
                         this.showError = false;
 
                         try{
-                            const response = await fetch('/api/notice/', {
+                            const response = await fetch(`/api/notice/`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'X-CSRFToken': '{{ csrf_token }}'
                                 },
-                                body: JSON.stringify({ text: this.task }),
-
+                                body: JSON.stringify({
+                                    text: this.task,
+                                    user: this.user_id,
+                                }),
                             });
+                            
                             if (!response.ok) {
-                                const errorData = await response.json();
-                                console.error('提交任务失败:', errorData);
-                                alert('提交任务失败，请稍后再试。');
+                                console.log(response)
+                                this.$message.error('添加任务失败，请稍后再试');
                                 return;
                             }
+                            
                             const data = await response.json();
-                           // debugger
-                            const databaseid = data.notices.id; // 返回数据库中的id
-                            console.log('任务提交成功，ID:', databaseid);
+                            
                             const newId = this.list.length > 0 ? Math.max(...this.list.map(item => item.id)) + 1 : 1;
-                            const now = new Date();
-                            const offset = new Date().getTimezoneOffset() * 60000; // 转换为毫秒
-                            const localTime = new Date(Date.now() - offset).toISOString().slice(0, 16).replace('T', ' ');
+                            
                             this.list.push({ 
                                 id: newId, 
-                                databaseid: databaseid,
+                                databaseid: data.notices.id,
                                 name: this.task, 
                                 completed: false, 
                                 editing: false, 
-                                createdAt: localTime
+                                createdAt: new Date(data.notices.time).toLocaleString(),
                             });
+                            
+                            //console.log(this.list)
+
                             this.task = '';
-                        }catch (error) {
-                            console.error('提交任务时发生错误:', error);
+                            this.$message.success('任务添加成功');
+                        } catch (error) {
+                            this.$message.error('网络错误，请稍后再试');
                         }
-                    } 
-                    else {
+                    } else {
                         this.showError = true;
                     }
                 },
                 async del(id) {
-                    //console.log('删除任务ID:', id);
                     try {
+                        await this.$confirm('确定要清空该任务吗？', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        });
                         const response = await fetch(`/api/notice/${id}/`, {
                             method: 'DELETE',
                             headers: {
                                 'X-CSRFToken': '{{ csrf_token }}'
                             }
                         });
+                        
                         if (response.ok) {
                             this.list = this.list.filter(item => item.databaseid !== id);
-                            //console.log('任务删除成功,ID:', this.list.databaseid);
+                            this.$message.success('任务删除成功');
                         } else {
-                            const errorData = await response.json();
-                            console.error('删除任务失败:', errorData);
-                            alert('删除任务失败，请稍后再试。');
+                            this.$message.error('删除任务失败，请稍后再试');
                         }
                     } catch (error) {
-                        console.error('删除任务时发生错误:', error);
+                        this.$message.error('网络错误，请稍后再试');
                     }
                 },
                 async ClearList() {
-                    /*for (let i = 0; i < this.list.length; i++) {
-                        this.del(this.list[i].databaseid);
-                        console.log('清空任务ID:', this.list[i].databaseid);
-                    }*/
                     if (this.list.length === 0) {
-                        alert('没有任务可以清空！');
+                        this.$message.warning('没有任务可以清空！');
                         return;
                     }
     
-                    if (!confirm('确定要清空所有任务吗？')) {
-                        return;
-                    }
                     try {
+                        await this.$confirm('确定要清空所有任务吗？', '提示', {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'warning'
+                        });
+
                         const deletePromises = this.list.map(item => 
                             fetch(`/api/notice/${item.databaseid}/`, {
                                 method: 'DELETE',
@@ -188,42 +718,19 @@
                                 }
                             })
                         );
-        
-                        const responses = await Promise.allSettled(deletePromises);
-
+                        await Promise.allSettled(deletePromises);
                         await this.getalldata();
-
-                        /*let successCount = 0;
-                        let failCount = 0;
-        
-                        responses.forEach((result, index) => {
-                            if (result.status === 'fulfilled' && result.value.ok) {
-                                successCount++;
-                            } 
-                            else {
-                                failCount++;
-                            }
-                        });
-        
-                        if (failCount === 0) {
-                            this.list = [];
-                            console.log(`所有任务已清空，共删除 ${successCount} 个任务`);
-                        } 
-                        else {
-                            await this.getalldata(); // 重新获取数据保持同步
-                            alert(`清空完成，但有 ${failCount} 个任务删除失败`);
-                        }*/
-                    } 
-                    catch (error) {
-                        console.error('清空任务时发生错误:', error);        
+                        this.$message.success('所有任务已清空');
+                    } catch (error) {
+                        if (error !== 'cancel') {
+                            this.$message.error('清空任务时发生错误');
+                        }
                     }
                 },
                 startEdit(item) {
-                    //将所有editing状态设置为false
                     this.list.forEach(i => i.editing = false);
                     item.editing = true;
                     this.$nextTick(() => {
-                        // 查找当前编辑的输入框并聚焦
                         const editInputs = this.$el.querySelectorAll('.edit-input');
                         if (editInputs.length > 0) {
                             editInputs[editInputs.length - 1].focus();
