@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课表</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+    <div id="app">
+        <div class="Upload">
+            <div class="Upload-demo">
+                <el-upload class="upload-demo" :auto-upload="false" :file-list="fileList" :on-change="handleFileChange" :limit="1" accept=".xlsx, .xls" :on-exceed="handleExceed"
+                    action="/api/upload_excel/">
+                    <el-button size="small" type="primary">选择课表</el-button>
+                </el-upload>
+            </div>
+            <div class="Upload-button">
+                <el-button type="primary" @click="submit" size="small">提交课表</el-button>
+            </div>
+        </div>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script>
+        const app = new Vue({
+            el: '#app',
+            data() {
+                return {
+                    fileList: []
+                };
+            },
+            methods: {
+                handleExceed(files, fileList) {
+                    // 限制只能上传1个文件 并更新为最新文件
+                    this.fileList = [fileList[1]];           
+                },
+                handleFileChange(file, fileList) {
+                    this.fileList = fileList;
+                },
+                async submit(){
+                    if (this.fileList.length === 0) {
+                        this.$message.warning('请先上传课表文件');
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+
+                    formData.append('file', this.fileList[0].raw)
+                    try {
+                        const response = await fetch(`/lesson/api/upload_excel/`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            this.$message.success('上传成功');
+                        }
+                        else {
+                            this.$message.error(`上传失败: ${result.error || '未知错误'}`);
+                        }
+                    } catch (error) {
+                        this.$message.error('上传失败，请重试');
+                    }
+                }
+            }
+        });
+    </script>
+    
+</body>
+</html>

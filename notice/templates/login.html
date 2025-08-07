@@ -299,10 +299,12 @@
                                 })
                             });
                             const result = await response.json();
+
+                            console.log(result);
                         
                             if(response.ok){
                                 this.$message.success("登录成功！")
-                                window.location.href=`/notice/?id=${result.id}`
+                                window.location.href=`/notice/?token=${result.token}&id=${result.id}`;
                             }
                             else{
                             //    console.log(result.error)

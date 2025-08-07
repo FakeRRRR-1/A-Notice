@@ -14,7 +14,9 @@ from django.core.mail import send_mail
 
 from rest_framework.permissions import IsAuthenticated
 
-from rest_framework.authentication import SessionAuthentication 
+from rest_framework.authentication import BaseAuthentication
+
+from rest_framework.exceptions import AuthenticationFailed
 
 import string
 import random
@@ -29,6 +31,24 @@ def login(request):
 
 def register(request):
     return render(request, "register.html")
+
+class Myauthentication(BaseAuthentication):
+
+    def authenticate(self, request):
+       
+        token = request.GET.get('token')
+       
+        if not token:
+           raise AuthenticationFailed({"error": "未提供令牌"})
+       
+        try:
+            CheckToken = LoginData.objects.filter(token=token).first()
+            if CheckToken:
+                return (CheckToken, token)    # request.user = CheckToken, request.auth = token
+            else:
+                raise AuthenticationFailed({"error": "令牌错误"})
+        except Exception as e:
+            raise AuthenticationFailed({"error": "令牌错误"})
 
 class NoticeSerializers(serializers.ModelSerializer):
     
@@ -62,28 +82,6 @@ class LoginSerializers(serializers.Serializer):
     password = serializers.CharField(max_length=128)
     
     # updated_at = serializers.DateTimeField(read_only=True)
-
-class NoticeData(APIView):
-    
-    def post(self, request):
-        
-        s = NoticeSerializers(data=request.data)
-        
-        if not s.is_valid():
-            # print("验证失败:",s.errors)
-            return Response({"errors": s.errors}, status=400)
-        else:
-            ns = Notice.objects.create(**s.validated_data)
-            s = NoticeSerializers(ns)
-            return Response({"notices": s.data}, status=201)
-    
-    def get(self, request):
-        # 获取所有的Notice数据
-        
-        notices = Notice.objects.all()
-        s = NoticeSerializers(notices, many=True)
-        # return Response(s.data, status=200)
-        return Response({"notices": s.data}, status=200)
     
 class RegisterDataView(APIView):
     
@@ -127,7 +125,6 @@ class LoginDataView(APIView):
     def post(self, request):
         
         ls = LoginSerializers(data=request.data)
-
         
         if not ls.is_valid():
             print(ls.validated_data)
@@ -135,39 +132,96 @@ class LoginDataView(APIView):
             return Response({"error": ls.errors}, status=400)
         else:
             if not LoginData.objects.filter(username=ls.validated_data.get('username')).exists():
-                return Response({"error":"用户名不存在"}, status=400)
-            
-            elif not LoginData.objects.filter(password=ls.validated_data.get('password')).exists():
+                return Response({"error":"用户名不存在"}, status=400) 
+                      
+            elif LoginData.objects.get(username=ls.validated_data.get('username')).password != ls.validated_data.get('password'):    # 修改一下密码检验的方法
                 return Response({"error":"密码输入不正确"}, status=400)
             
-            else:         
-                return Response({"message": "登陆成功", "id": LoginData.objects.get(username=ls.validated_data.get('username')).id}, status=201)
-                  
+            else:
+                token = str(uuid.uuid4())
+                UpdateData = LoginData.objects.get(username=ls.validated_data.get('username'))
+                UpdateData.token = token
+                UpdateData.save()
+                # print("UpdateData:", UpdateData)
+                return Response({"message": "登陆成功", "token": token, "id": UpdateData.id}, status=201)
+            
+class NoticeData(APIView):
+    
+    authentication_classes = [Myauthentication]
+    
+    def post(self, request):
+        
+        s = NoticeSerializers(data=request.data)
+        
+        if not s.is_valid():
+            # print("验证失败:",s.errors)
+            return Response({"errors": s.errors}, status=400)
+        else:
+            ns = Notice.objects.create(**s.validated_data)
+            s = NoticeSerializers(ns)
+            return Response({"notices": s.data}, status=201)
+    
+    def get(self, request):
+        # 获取所有的Notice数据
+        
+        notices = Notice.objects.all()
+        s = NoticeSerializers(notices, many=True)
+        # return Response(s.data, status=200)
+        return Response({"notices": s.data}, status=200)
+
 class NoticeDataDerail(APIView):
     
-    authentication_classes = [SessionAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [Myauthentication]
+    
+    def post(self, request):
 
-    def get(self, request, userID):
-        # print("!!!!!!!!!!!!!!!!!!!!!")
+        s = NoticeSerializers(data=request.data)
+        
+        if not s.is_valid():
+            # print("验证失败:",s.errors)
+            return Response({"errors": s.errors}, status=400)
+        else:
+            ns = Notice.objects.create(**s.validated_data)
+            s = NoticeSerializers(ns)
+            return Response({"notices": s.data}, status=201)
+    
+    def get(self, request):
         # 获取单个Notice数据
         # print(userID)   
-        # self.dispatch()
-        print("authentication_classes:", self.authentication_classes)
-        print("request.user:", request.user)
-        print("request.auth:", request.auth)
+        userID = request.GET.get('id')
+        
+        # print("token:", token)
+        # print("userID:", userID)
+
+        # print("authentication_classes:", self.authentication_classes)
+        # print("request.user:", request.user)
+        # print("request.auth:", request.auth)
+        
+        if userID:
+            try:
+                notice = Notice.objects.filter(user=userID)
+                s = NoticeSerializers(notice, many=True)
+                return Response(s.data, status=200)
+            except Notice.DoesNotExist:  
+                return Response({"error": "找不到数据"}, status=404)
+            
+        else:
+            try:
+                notice = Notice.objects.all()
+                s = NoticeSerializers(notice, many=True)
+                return Response(s.data, status=200)
+            except Notice.DoesNotExist:
+                return Response({"error": "找不到数据"}, status=404)
+    
+    def put(self, request):
+        # 更新单个Notice数据
+        
+        dataID = request.GET.get('dataid')
+        if not dataID:
+            return Response({"error": "未提供数据ID"}, status=400)
         
         try:
-            notice = Notice.objects.filter(user=userID)
-            s = NoticeSerializers(notice, many=True)
-            return Response(s.data, status=200)
-        except Notice.DoesNotExist:  
-            return Response({"error": "找不到数据"}, status=404)
-    
-    def put(self, request, pk):
-        # 更新单个Notice数据
-        try:
-            notice = Notice.objects.get(pk=pk)
+            notice = Notice.objects.get(pk=dataID)
             s = NoticeSerializers(notice, data=request.data)
             if s.is_valid():
                 s.save()
@@ -176,10 +230,13 @@ class NoticeDataDerail(APIView):
                 return Response({"errors": s.errors}, status=400)
         except Notice.DoesNotExist:
             return Response({"error": "找不到数据"}, status=404)
-    def delete(self, request, pk):
+    def delete(self, request):
         # 删除单个Notice数据
+        dataID = request.GET.get('dataid')
+        if not dataID:
+            return Response({"error": "未提供数据ID"}, status=400)
         try:
-            notice = Notice.objects.get(pk=pk)
+            notice = Notice.objects.get(pk=dataID)
             notice.delete()
             return Response({"message": "删除成功！"}, status=204)
         except Notice.DoesNotExist:
@@ -214,16 +271,3 @@ class sendEmail(APIView):
         
         except Exception as e:
             return Response({"error": str(e)}, status=500)
-        
-class LoginDataDerial(APIView):
-    
-    def get(self, request, pk):
-        # 获取单个LoginData数据
-        try:
-            login_data = LoginData.objects.get(pk=pk)
-            s = RegisterSerializers(login_data)
-            return Response(s.data, status=200)
-        except LoginData.DoesNotExist:
-            return Response({"error": "找不到数据"}, status=404)
-        
-        
