@@ -1,6 +1,6 @@
 from django.db import models
 
-import uuid
+# import uuid   
 
 # Create your models here.
 
