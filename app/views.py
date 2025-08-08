@@ -1,21 +1,11 @@
 from django.shortcuts import render
-
 from rest_framework.views import APIView
-
 from rest_framework import serializers
-
 from rest_framework.response import Response
-
 from django.views.decorators.csrf import csrf_exempt
-
 from .models import Notice, LoginData, EmailCode
-
 from django.core.mail import send_mail
-
-from rest_framework.permissions import IsAuthenticated
-
 from rest_framework.authentication import BaseAuthentication
-
 from rest_framework.exceptions import AuthenticationFailed
 
 import string

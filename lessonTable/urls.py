@@ -18,6 +18,6 @@ from django.urls import path
 from lessonTable import views
 
 urlpatterns = [
-    path('api/upload_excel/', views.UploadExcelView.as_view(), name='upload_excel'),
+    path('api/table/', views.UploadExcelView.as_view(), name='upload_excel'),
     path('table/', views.adds, name='lesson_table'),
 ]

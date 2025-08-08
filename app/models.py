@@ -14,7 +14,7 @@ class Notice(models.Model):
 
     flag = models.BooleanField(default=False, verbose_name="是否完成" )        # default=False为默认的值
     
-    user = models.ForeignKey(to='LoginData', on_delete=models.CASCADE, verbose_name="用户")  # ForeignKey表示一对多关系，on_delete=models.CASCADE表示级联删除
+    user = models.ForeignKey(to='app.LoginData', on_delete=models.CASCADE, verbose_name="用户")  # ForeignKey表示一对多关系，on_delete=models.CASCADE表示级联删除
     
     class Meta:
         db_table = 'notice_data'
@@ -34,21 +34,7 @@ class LoginData(models.Model):
     token = models.CharField(max_length=255, blank=True, null=True, verbose_name="令牌")
     
     class Meta:
-        db_table = 'login_data'
-        
-# class LoginData(models.Model):
-    
-#     username = models.CharField(max_length=30, unique = True, verbose_name="用户名")
-    
-#     password = models.CharField(max_length=128,verbose_name="密码")
-    
-#     updated_at = models.DateTimeField(auto_now=True, verbose_name="更新时间")
-    
-#     class meta:
-#         db_table = 'login_data'
-    
-        
-        
+        db_table = 'login_data'       
         
 class EmailCode(models.Model):
     
