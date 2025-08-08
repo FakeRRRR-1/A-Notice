@@ -489,7 +489,7 @@
     <div id="app">
         <!-- 导航菜单 -->
         <div>
-            <el-menu mode="horizontal" default-active="2" class="beautiful-navbar">
+            <el-menu mode="horizontal" default-active="1" class="beautiful-navbar">
                 <div class="nav-left">
                     <div class="logo-section">
                         <div class="logo-img">
@@ -498,8 +498,12 @@
                         <div class="logo-text">备忘录</div>
                     </div>
                     <div class="nav-menu" style="margin-left: 120px;">
-                        <el-menu-item index="1" @click="goToLogin">登录</el-menu-item>
-                        <el-menu-item index="2">备忘录</el-menu-item>
+                        <el-menu-item index="1">备忘录</el-menu-item>
+                        <el-menu-item index="2" @click="goToLesson">课表</el-menu-item>
+                    </div>
+                    <div class="username">
+                        你好！{{user_name}}
+                        <a href="/">退出</a>
                     </div>
                 </div>
             </el-menu>
@@ -534,9 +538,11 @@
                                 <i class="el-icon-time"></i> {{ item.createdAt | formatDate }}          
                             </td>
                             <td>
-                                <input type="checkbox" v-model="item.completed">
+                                <!-- 完成功能 -->
+                                <input type="checkbox" v-model="item.completed">            
                             </td>
                             <td>
+                                <!-- 删除功能 -->
                                 <button class="delete-btn" @click="del(item.databaseid)">
                                     <i class="el-icon-delete"></i>
                                 </button>
@@ -563,7 +569,7 @@
                 task: '',
                 showError: false,
                 list: [],
-                //user_id: '',
+                user_name: '',
             },
             filters: {
                 formatDate(value) {
@@ -572,6 +578,7 @@
                 }
             },
             created() {
+                this.user_token = new URLSearchParams(window.location.search).get('token')
                 this.user_id = new URLSearchParams(window.location.search).get('id')
                 this.getUser();
                 this.getalldata();
@@ -581,17 +588,23 @@
                 goToLogin() {
                     window.location.href = '/';
                 },
+                goToLesson() {
+                    window.location.href = `/lesson/table/?id=${this.user_id}&token=${this.user_token}`;
+                },
                 async getUser() {
                     try{
-                        const response = await fetch('/api/login/');
+                        const response = await fetch(`/api/login/?id=${this.user_id}&token=${this.user_token}`);
                         if(!response.ok){
                             this.$message.error('获取数据失败');
                             return;
                         }
-                        else{                          
-                            const result = await response.json();
-                          //  console.log(result);
-                        }
+                                                
+                        const result = await response.json();
+                        this.user_name = result.Login_Data[0].username
+                        
+                        //console.log("Data:", result)
+
+                        //console.log("username:", this.user_name);
                     }
                     catch(error){
                         this.$message.error('请求错误')
@@ -599,7 +612,7 @@
                 },
                 async getalldata() {
                     try {
-                        const response = await fetch(`/api/notice/${this.user_id}`);
+                        const response = await fetch(`/api/notice/?id=${this.user_id}&token=${this.user_token}`);
                         if (!response.ok) {
                             this.$message.error('获取数据失败');
                             return;
@@ -610,7 +623,9 @@
 
                         //console.log(typeof this.user_id, typeof data[0].user)
 
-                        filteredData = data.filter(item => item.user === this.user_id)    //获取data中user = this.user_id 的数据
+                        //console.log("Data:", data)
+
+                        filteredData = data.filter(item => item.user === Number(this.user_id))    //获取data中user = this.user_id 的数据
 
                         this.list = filteredData.map(item => ({
                             databaseid: item.id,
@@ -623,6 +638,7 @@
 
                     } catch (error) {
                         //console.log(error)
+                        this.$message.error('获取数据失败');
                         return;
                     }
                 },
@@ -631,7 +647,7 @@
                         this.showError = false;
 
                         try{
-                            const response = await fetch(`/api/notice/`, {
+                            const response = await fetch(`/api/notice/?id=${this.user_id}&token=${this.user_token}`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -650,6 +666,8 @@
                             }
                             
                             const data = await response.json();
+
+                            console.log("Data:", data)
                             
                             const newId = this.list.length > 0 ? Math.max(...this.list.map(item => item.id)) + 1 : 1;
                             
@@ -680,7 +698,7 @@
                             cancelButtonText: '取消',
                             type: 'warning'
                         });
-                        const response = await fetch(`/api/notice/${id}/`, {
+                        const response = await fetch(`/api/notice/?dataid=${id}&token=${this.user_token}`, {
                             method: 'DELETE',
                             headers: {
                                 'X-CSRFToken': '{{ csrf_token }}'
@@ -711,7 +729,7 @@
                         });
 
                         const deletePromises = this.list.map(item => 
-                            fetch(`/api/notice/${item.databaseid}/`, {
+                            fetch(`/api/notice/?dataid=${item.databaseid}&token=${this.user_token}`, {
                                 method: 'DELETE',
                                 headers: {
                                     'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课表</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: rgb(153, 182, 245, 0.1);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, #app {
+            margin: 0;
+            padding: 0;
+        }
+        /* 美化导航条 */
+        .beautiful-navbar {
+            background: linear-gradient(90deg, rgba(84, 84, 114, 0.15) 0%, rgba(176, 200, 247, 0.1) 100%);
+            backdrop-filter: blur(15px);
+            border: none;
+            border-bottom: 1px solid rgba(176, 200, 247, 0.3);
+            box-shadow: 0 8px 32px rgba(84, 84, 114, 0.15), 0 2px 8px rgba(0, 0, 0, 0.05);
+            height: 80px;
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 50px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+        
+        /* 导航条背景装饰 - 流光动画 */
+        .beautiful-navbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(176, 200, 247, 0.2), transparent);
+            animation: shimmer 4s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+        
+        /* Logo区域和导航菜单整体容器 */
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            z-index: 2;
+        }
+        
+        /* Logo区域 */
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-img {
+            width: 80px;
+            height: 80px;           
+            transition: transform 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .logo-img:hover {
+            transform: rotate(5deg) scale(1.1);
+        }
+        
+        .logo-text {
+            color: rgb(84, 84, 114);
+            font-size: 28px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            letter-spacing: 2px;
+        }
+        
+        /* 导航菜单区域 */
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            z-index: 2;
+        }
+        
+        /* 重写Element UI菜单项样式 */
+        .beautiful-navbar .el-menu-item {
+            background: rgba(176, 200, 247, 0.2) !important;
+            border: 1px solid rgba(176, 200, 247, 0.3) !important;
+            border-radius: 25px !important;
+            color: rgb(84, 84, 114) !important;
+            font-weight: 500 !important;
+            padding: 0 25px !important;
+            margin: 0 5px !important;
+            height: 45px !important;
+            line-height: 43px !important;
+            transition: all 0.3s ease !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+        
+        .beautiful-navbar .el-menu-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(176, 200, 247, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .beautiful-navbar .el-menu-item:hover {
+            background: rgba(176, 200, 247, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+            border-color: rgba(176, 200, 247, 0.5) !important;
+        }
+        
+        .beautiful-navbar .el-menu-item:hover::before {
+            left: 100%;
+        }
+        
+        .beautiful-navbar .el-menu-item.is-active {
+            background: rgba(176, 200, 247, 0.5) !important;
+            border-color: rgba(176, 200, 247, 0.7) !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .container-upload {
+            max-width: 800px;
+            width: 800px;
+            height: 550px;
+            margin: 0 auto;
+            background-color: rgb(176, 200, 247, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, .12), 0 0 6px rgba(0,0,0,.04);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+             /* 页面加载时的渐入动画 */
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease-out forwards, floatCard 3s ease-in-out infinite 0.8s;
+            transition: transform 0.3s ease;
+        }
+
+        .container-course {
+            max-width: 800px;
+            width: 800px;
+            height: 550px;
+            margin: 0 auto;
+            background-color: rgb(176, 200, 247, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, .12), 0 0 6px rgba(0,0,0,.04);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+             /* 页面加载时的渐入动画 */
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease-out forwards, floatCard 3s ease-in-out infinite 0.8s;
+            transition: transform 0.3s ease;
+        }
+         
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0px);
+            }
+        }
+        .title {
+            text-align: center;
+            background: linear-gradient(45deg, rgb(0, 0, 0), rgb(149, 149, 150));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    {% csrf_token %}
+    {% verbatim %}
+    <div id="app">
+        <div>
+            <el-menu mode="horizontal" default-active="1" class="beautiful-navbar">
+                <div class="nav-left">
+                    <div class="logo-section">
+                        <div class="logo-img">
+                            <img src="/static/img/ChatGPT Image 2025年8月5日 10_46_55.png" alt="Logo">
+                        </div>
+                        <div class="logo-text">备忘录</div>
+                    </div>
+                    <div class="nav-menu" style="margin-left: 120px;">
+                        <el-menu-item index="1" @click="goToNotice">备忘录</el-menu-item>
+                        <el-menu-item index="2">课表</el-menu-item>
+                    </div>
+                    <div class="username">
+                        你好！{{user_name}}
+                        <a href="/">退出</a>
+                    </div>
+                </div>
+            </el-menu>
+        </div>
+
+        <!-- <h1 class="title">课表</h1> -->
+        <div class="container-upload" v-if="changeFlag == 0">
+            <div><h1 style="text-align: center;">导入课表</h1></div>
+            <div class="startTime">
+                <h3>设置学期开始时间</h3>
+                <el-date-picker v-model="startDate" type="date" placeholder="选择日期"></el-date-picker>
+            </div>
+            <div class="Upload">
+                <div class="Upload-demo">
+                    <h3>上传文件</h3>
+                    <el-upload class="upload-demo" drag action="/api/upload_excel/" multiple  :auto-upload="false" :file-list="fileList" :on-change="handleFileChange" :limit="1" accept=".xlsx, .xls" :on-exceed="handleExceed">
+                    <i class="el-icon-upload"></i>
+                    <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                    <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
+                    </el-upload>
+                </div>
+                <div class="Upload-button">
+                    <br>
+                    <el-button type="primary" @click="submit" size="small" @click="getData">提交课表</el-button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-course" v-if="changeFlag == 1">
+            <div><h1 style="text-align: center;">课表</h1></div>
+            
+        </div>
+    </div>
+    {% endverbatim %}
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script>
+        const app = new Vue({
+            el: '#app',
+            data: {
+                fileList: [],
+                startDate: '', // 默认学期开始时间为当前日期
+                user_token: '',
+                user_name: '',
+                changeFlag: 0,
+                havedata: 0,
+                //user_id:
+            },
+            created() {
+                this.user_token = new URLSearchParams(window.location.search).get('token');
+                this.user_id = new URLSearchParams(window.location.search).get('id');
+                this.getUser();
+                this.getHaveData();
+            },
+            methods: {
+                goToNotice() {
+                    window.location.href = `/notice/?id=${this.user_id}&token=${this.user_token}`;
+                },
+                handleExceed(files, fileList) {
+                    // 限制只能上传1个文件 并更新为最新文件
+                    this.fileList = [fileList[1]];           
+                },
+                handleFileChange(file, fileList) {
+                    this.fileList = fileList;
+                },
+                //获取用户名称
+                async getUser() {
+                    try{
+                        const response = await fetch(`/api/login/?id=${this.user_id}&token=${this.user_token}`);
+                        if(!response.ok){
+                            this.$message.error('获取数据失败');
+                            return;
+                        }
+                                                
+                        const result = await response.json();
+                        console.log("result:", result)
+                        this.user_name = result.Login_Data[0].username
+                        console.log("username:", this.user_name)
+                    }
+                    catch(error){
+                        this.$message.error('请求错误')
+                    }
+                },
+
+                //查看课表是否存在
+                async getHaveData(){
+                    const response = await fetch(`/lesson/api/table/?id=${this.user_id}&token=${this.user_token}`);
+                    if (!response.ok) {
+                            this.$message.error('获取数据失败');
+                            return;
+                    }
+                    const data = await response.json();
+                    if(data){
+                        this.havedata = 1
+                    }
+                },
+                
+                //获取课表数据
+                async getData(){
+                    const response = await fetch(`/lesson/api/table/?id=${this.user_id}&token=${this.user_token}`);
+                        if (!response.ok) {
+                            this.$message.error('获取数据失败');
+                            return;
+                        }
+                        const data = await response.json();
+                        console.log("data!!!!!!:", data)
+                },
+
+                //上传课表excel文件
+                async submit(){
+                    if (this.fileList.length === 0) {
+                        this.$message.warning('请先上传课表文件');
+                        return;
+                    }
+
+                    if (!this.startDate) {
+                        this.$message.warning('请设置学期开始时间');
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+
+                    formData.append('file', this.fileList[0].raw)
+                    formData.append('start_date', this.startDate);
+                    try {
+                        const response = await fetch(`/lesson/api/upload_excel/?id=${this.user_id}&token=${this.user_token}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            this.$message.success('上传成功');
+                            this.changeFlag = 1
+                        }
+                        else {
+                            this.$message.error(`上传失败: ${result.error || '未知错误'}`);
+                        }
+                    } catch (error) {
+                        this.$message.error('上传失败，请重试');
+                    }
+                }
+            }
+        });
+    </script>
+    
+</body>
+</html>

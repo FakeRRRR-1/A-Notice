@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from app import views
 from app.views import NoticeData, NoticeDataDerail
 
@@ -28,14 +28,18 @@ urlpatterns = [
     
     path('register/', views.register),
 
-    path('api/notice/', NoticeData.as_view()),
+    # path('api/notice/', NoticeData.as_view()),
     
-    path('api/notice/<uuid:userID>/', NoticeDataDerail.as_view()),
+    # path('api/notice/<uuid:userID>/', NoticeDataDerail.as_view()),
+
+    path('api/notice/', NoticeDataDerail.as_view()),
     
     path('api/register/', views.RegisterDataView.as_view()),
     
     path('api/sendemail/', views.sendEmail.as_view()),
     
     path('api/login/', views.LoginDataView.as_view()),
-    
+
+    path('lesson/', include('lessonTable.urls')),
+
 ]
