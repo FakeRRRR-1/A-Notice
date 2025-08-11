@@ -150,7 +150,7 @@
 
         .container-upload {
             max-width: 800px;
-            width: 800px;
+            width: 400px;
             height: 550px;
             margin: 0 auto;
             background-color: rgb(176, 200, 247, 0.1);
@@ -169,15 +169,14 @@
         }
 
         .container-course {
-            max-width: 800px;
-            width: 800px;
-            height: 550px;
+            max-width: 1200px;
+            width: 1200px;
             margin: 0 auto;
             background-color: rgb(176, 200, 247, 0.1);
             border-radius: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, .12), 0 0 6px rgba(0,0,0,.04);
             border: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 40px;
+            padding: 30px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -187,7 +186,6 @@
             animation: fadeInUp 0.8s ease-out forwards, floatCard 3s ease-in-out infinite 0.8s;
             transition: transform 0.3s ease;
         }
-         
         @keyframes fadeInUp {
             0% {
                 opacity: 0;
@@ -208,6 +206,134 @@
             margin-bottom: 40px;
             font-weight: 700;
         }
+
+        /* 课表样式 */
+        .schedule-table {
+            margin-top: 20px;
+        }
+
+        .schedule-table .el-table th {
+            background-color: rgba(176, 200, 247, 0.3);
+            font-weight: bold;
+            text-align: center !important;
+            padding: 12px 8px !important;
+            font-size: 14px;
+        }
+
+        /* 重要：设置固定高度的表格单元格 */
+        .schedule-table .el-table td {
+            text-align: center !important;
+            padding: 8px 4px !important;
+            height: 100px !important;
+            vertical-align: middle !important;
+            position: relative;
+        }
+
+        /* 课程单元格容器 */
+        .course-cell-container {
+            height: 100%;
+            min-height: 84px; /* 减去padding后的高度 */
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            overflow-y: auto;
+            position: relative;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .course-cell {
+            padding: 8px 6px;
+            margin: 1px 0;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.3;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            flex-shrink: 0;
+            min-height: 50px;
+            width: 90%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .course-info {
+            font-weight: bold;
+            margin-bottom: 3px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .course-location {
+            color: #666;
+            font-size: 11px;
+            margin-bottom: 2px;
+            text-align: center;
+        }
+
+        .course-teacher {
+            color: #888;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        /* 空单元格占位 */
+        .empty-cell {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        /* 不同课程的颜色 */
+        .course-1 { background-color: #e3f2fd; border-left: 4px solid #2196f3; }
+        .course-2 { background-color: #f3e5f5; border-left: 4px solid #9c27b0; }
+        .course-3 { background-color: #e8f5e8; border-left: 4px solid #4caf50; }
+        .course-4 { background-color: #fff3e0; border-left: 4px solid #ff9800; }
+        .course-5 { background-color: #fce4ec; border-left: 4px solid #e91e63; }
+        .course-6 { background-color: #e0f2f1; border-left: 4px solid #009688; }
+        .course-7 { background-color: #f1f8e9; border-left: 4px solid #8bc34a; }
+        .course-8 { background-color: #fff8e1; border-left: 4px solid #ffc107; }
+
+        .week-selector {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* 确保表格布局稳定 */
+        .schedule-table .el-table {
+            table-layout: fixed;
+            font-size: 13px;
+        }
+
+        .schedule-table .el-table .el-table__body tr {
+            height: 100px;
+        }
+
+        /* 调整表格列宽 */
+        .schedule-table .el-table .time-column {
+            width: 100px;
+            font-weight: 600;
+            background-color: rgba(176, 200, 247, 0.1);
+        }
+
+        .schedule-table .el-table .day-column {
+            width: 140px;
+        }
     </style>
 </head>
 <body>
@@ -215,7 +341,7 @@
     {% verbatim %}
     <div id="app">
         <div>
-            <el-menu mode="horizontal" default-active="1" class="beautiful-navbar">
+            <el-menu mode="horizontal" default-active="2" class="beautiful-navbar">
                 <div class="nav-left">
                     <div class="logo-section">
                         <div class="logo-img">
@@ -227,7 +353,7 @@
                         <el-menu-item index="1" @click="goToNotice">备忘录</el-menu-item>
                         <el-menu-item index="2">课表</el-menu-item>
                     </div>
-                    <div class="username">
+                    <div class="username" style="margin-left: 1000px">
                         你好！{{user_name}}
                         <a href="/">退出</a>
                     </div>
@@ -235,7 +361,7 @@
             </el-menu>
         </div>
 
-        <!-- <h1 class="title">课表</h1> -->
+        <!-- 课表上传界面 -->
         <div class="container-upload" v-if="changeFlag == 0">
             <div><h1 style="text-align: center;">导入课表</h1></div>
             <div class="startTime">
@@ -248,19 +374,130 @@
                     <el-upload class="upload-demo" drag action="/api/upload_excel/" multiple  :auto-upload="false" :file-list="fileList" :on-change="handleFileChange" :limit="1" accept=".xlsx, .xls" :on-exceed="handleExceed">
                     <i class="el-icon-upload"></i>
                     <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                    <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
+                    <div class="el-upload__tip" slot="tip">只能上传xlsx/xls文件</div>
                     </el-upload>
                 </div>
                 <div class="Upload-button">
                     <br>
-                    <el-button type="primary" @click="submit" size="small" @click="getData">提交课表</el-button>
+                    <el-button type="primary" @click="submit" size="small">提交课表</el-button>
                 </div>
             </div>
         </div>
 
+        <!-- 课表显示界面 -->
         <div class="container-course" v-if="changeFlag == 1">
             <div><h1 style="text-align: center;">课表</h1></div>
             
+            <!-- 周次选择器 -->
+            <div class="week-selector">
+                <el-select v-model="selectedWeek" placeholder="选择周次" @change="onWeekChange">
+                    <el-option
+                        v-for="week in availableWeeks"
+                        :key="week"
+                        :label="`第${week}周`"
+                        :value="week">
+                    </el-option>
+                </el-select>
+                <span>当前显示：第{{selectedWeek}}周</span>
+            </div>
+
+            <!-- 课表 -->
+            <div class="schedule-table">
+                <el-table :data="tableData" border style="width: 100%; max-width: 1150px; margin: 0 auto;">
+                    <el-table-column prop="time" label="时间" width="110" fixed class-name="time-column"></el-table-column>
+                    <el-table-column label="周一" width="140" class-name="day-column">
+                        <template slot-scope="scope">
+                            <div class="course-cell-container">
+                                <div v-if="scope.row.Mon.length === 0" class="empty-cell">无课</div>
+                                <div v-for="course in scope.row.Mon" :key="course.id" 
+                                     :class="['course-cell', getCourseClass(course.lesson)]">
+                                    <div class="course-info">{{ course.lesson }}</div>
+                                    <div class="course-location">{{ course.location }}</div>
+                                    <div class="course-teacher">{{ course.teacher }}</div>
+                                </div>
+                            </div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="周二" width="140" class-name="day-column">
+                        <template slot-scope="scope">
+                            <div class="course-cell-container">
+                                <div v-if="scope.row.Tue.length === 0" class="empty-cell">无课</div>
+                                <div v-for="course in scope.row.Tue" :key="course.id" 
+                                     :class="['course-cell', getCourseClass(course.lesson)]">
+                                    <div class="course-info">{{ course.lesson }}</div>
+                                    <div class="course-location">{{ course.location }}</div>
+                                    <div class="course-teacher">{{ course.teacher }}</div>
+                                </div>
+                            </div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="周三" width="140" class-name="day-column">
+                        <template slot-scope="scope">
+                            <div class="course-cell-container">
+                                <div v-if="scope.row.Wed.length === 0" class="empty-cell">无课</div>
+                                <div v-for="course in scope.row.Wed" :key="course.id" 
+                                     :class="['course-cell', getCourseClass(course.lesson)]">
+                                    <div class="course-info">{{ course.lesson }}</div>
+                                    <div class="course-location">{{ course.location }}</div>
+                                    <div class="course-teacher">{{ course.teacher }}</div>
+                                </div>
+                            </div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="周四" width="140" class-name="day-column">
+                        <template slot-scope="scope">
+                            <div class="course-cell-container">
+                                <div v-if="scope.row.Thu.length === 0" class="empty-cell">无课</div>
+                                <div v-for="course in scope.row.Thu" :key="course.id" 
+                                     :class="['course-cell', getCourseClass(course.lesson)]">
+                                    <div class="course-info">{{ course.lesson }}</div>
+                                    <div class="course-location">{{ course.location }}</div>
+                                    <div class="course-teacher">{{ course.teacher }}</div>
+                                </div>
+                            </div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="周五" width="140" class-name="day-column">
+                        <template slot-scope="scope">
+                            <div class="course-cell-container">
+                                <div v-if="scope.row.Fri.length === 0" class="empty-cell">无课</div>
+                                <div v-for="course in scope.row.Fri" :key="course.id" 
+                                     :class="['course-cell', getCourseClass(course.lesson)]">
+                                    <div class="course-info">{{ course.lesson }}</div>
+                                    <div class="course-location">{{ course.location }}</div>
+                                    <div class="course-teacher">{{ course.teacher }}</div>
+                                </div>
+                            </div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="周六" width="140" class-name="day-column">
+                        <template slot-scope="scope">
+                            <div class="course-cell-container">
+                                <div v-if="scope.row.Sat.length === 0" class="empty-cell">无课</div>
+                                <div v-for="course in scope.row.Sat" :key="course.id" 
+                                     :class="['course-cell', getCourseClass(course.lesson)]">
+                                    <div class="course-info">{{ course.lesson }}</div>
+                                    <div class="course-location">{{ course.location }}</div>
+                                    <div class="course-teacher">{{ course.teacher }}</div>
+                                </div>
+                            </div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="周日" width="140" class-name="day-column">
+                        <template slot-scope="scope">
+                            <div class="course-cell-container">
+                                <div v-if="scope.row.Sun.length === 0" class="empty-cell">无课</div>
+                                <div v-for="course in scope.row.Sun" :key="course.id" 
+                                     :class="['course-cell', getCourseClass(course.lesson)]">
+                                    <div class="course-info">{{ course.lesson }}</div>
+                                    <div class="course-location">{{ course.location }}</div>
+                                    <div class="course-teacher">{{ course.teacher }}</div>
+                                </div>
+                            </div>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
         </div>
     </div>
     {% endverbatim %}
@@ -271,12 +508,16 @@
             el: '#app',
             data: {
                 fileList: [],
-                startDate: '', // 默认学期开始时间为当前日期
+                startDate: '', 
                 user_token: '',
                 user_name: '',
                 changeFlag: 0,
-                havedata: 0,
-                //user_id:
+                list: [],
+                selectedWeek: 1,
+                availableWeeks: [],
+                tableData: [],
+                allCourseData: [],
+                courseColors: {} // 存储课程名称和颜色类的映射
             },
             created() {
                 this.user_token = new URLSearchParams(window.location.search).get('token');
@@ -289,12 +530,12 @@
                     window.location.href = `/notice/?id=${this.user_id}&token=${this.user_token}`;
                 },
                 handleExceed(files, fileList) {
-                    // 限制只能上传1个文件 并更新为最新文件
                     this.fileList = [fileList[1]];           
                 },
                 handleFileChange(file, fileList) {
                     this.fileList = fileList;
                 },
+
                 //获取用户名称
                 async getUser() {
                     try{
@@ -305,9 +546,7 @@
                         }
                                                 
                         const result = await response.json();
-                        console.log("result:", result)
-                        this.user_name = result.Login_Data[0].username
-                        console.log("username:", this.user_name)
+                        this.user_name = result.Login_Data.find(user => user.id === Number(this.user_id)).username
                     }
                     catch(error){
                         this.$message.error('请求错误')
@@ -318,24 +557,107 @@
                 async getHaveData(){
                     const response = await fetch(`/lesson/api/table/?id=${this.user_id}&token=${this.user_token}`);
                     if (!response.ok) {
-                            this.$message.error('获取数据失败');
-                            return;
+                        this.$message.error('获取数据失败');
+                        return;
                     }
                     const data = await response.json();
-                    if(data){
+
+                    const f = data.filter(user => user.user === Number(this.user_id))
+
+                    console.log("f:",f)
+
+                    if(f.length !== 0){
                         this.havedata = 1
+                        await this.$confirm('您已导入课表，是否跳过这一步', '提示', {
+                            confirmButtonText: '是',
+                            cancelButtonText: '否',
+                            type: 'warning'
+                        })
+                        .then(()=>{
+                            this.getData(f)
+                            this.changeFlag = 1;                          
+                        })
+                        .catch(()=>{
+                            this.$message({
+                                type: 'success',
+                                message: '请您导入课表'
+                            });
+                            this.changeFlag = 0;
+                        })
                     }
                 },
                 
-                //获取课表数据
-                async getData(){
-                    const response = await fetch(`/lesson/api/table/?id=${this.user_id}&token=${this.user_token}`);
-                        if (!response.ok) {
-                            this.$message.error('获取数据失败');
-                            return;
-                        }
-                        const data = await response.json();
-                        console.log("data!!!!!!:", data)
+                //获取课表数据并处理
+                getData(data){
+                    console.log("data:", data)
+                    this.allCourseData = data;
+                    
+                    // 获取所有可用的周次
+                    this.availableWeeks = [...new Set(data.map(item => item.week))].sort((a, b) => a - b);
+                    
+                    // 设置默认显示第一周
+                    this.selectedWeek = this.availableWeeks[0] || 1;
+                    
+                    // 为课程分配颜色
+                    this.assignCourseColors(data);
+                    
+                    // 处理课表数据
+                    this.processScheduleData();
+                },
+
+                // 为不同课程分配颜色类
+                assignCourseColors(data) {
+                    const uniqueCourses = [...new Set(data.map(item => item.lesson))];
+                    uniqueCourses.forEach((course, index) => {
+                        this.courseColors[course] = `course-${(index % 8) + 1}`;
+                    });
+                },
+
+                // 获取课程对应的颜色类
+                getCourseClass(courseName) {
+                    return this.courseColors[courseName] || 'course-1';
+                },
+
+                // 处理课表数据
+                processScheduleData() {
+                    const weekData = this.allCourseData.filter(item => item.week === this.selectedWeek);
+                    
+                    // 定义时间段
+                    const timeSlots = [
+                        { time: '08:00-09:40', key: '08:00:00' },
+                        { time: '10:00-11:40', key: '10:00:00' },
+                        { time: '13:00-14:40', key: '13:00:00' },
+                        { time: '14:50-16:30', key: '14:50:00' },
+                        { time: '16:40-18:20', key: '16:40:00' },
+                        { time: '18:30-20:10', key: '18:30:00' }
+                    ];
+
+                    this.tableData = timeSlots.map(slot => {
+                        const timeData = {
+                            time: slot.time,
+                            Mon: [],
+                            Tue: [],
+                            Wed: [],
+                            Thu: [],
+                            Fri: [],
+                            Sat: [],
+                            Sun: []
+                        };
+
+                        // 为每个时间段找到对应的课程
+                        weekData.forEach(course => {
+                            if (course.start_time === slot.key) {
+                                timeData[course.day].push(course);
+                            }
+                        });
+
+                        return timeData;
+                    });
+                },
+
+                // 周次切换
+                onWeekChange() {
+                    this.processScheduleData();
                 },
 
                 //上传课表excel文件
@@ -351,11 +673,11 @@
                     }
                     
                     const formData = new FormData();
-
                     formData.append('file', this.fileList[0].raw)
                     formData.append('start_date', this.startDate);
+                    
                     try {
-                        const response = await fetch(`/lesson/api/upload_excel/?id=${this.user_id}&token=${this.user_token}`, {
+                        const response = await fetch(`/lesson/api/table/?id=${this.user_id}&token=${this.user_token}`, {
                             method: 'POST',
                             body: formData
                         });
@@ -363,7 +685,8 @@
 
                         if (response.ok) {
                             this.$message.success('上传成功');
-                            this.changeFlag = 1
+                            // 重新获取课表数据
+                            this.getHaveData();
                         }
                         else {
                             this.$message.error(`上传失败: ${result.error || '未知错误'}`);
