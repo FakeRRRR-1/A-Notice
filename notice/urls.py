@@ -41,5 +41,7 @@ urlpatterns = [
     path('api/login/', views.LoginDataView.as_view()),
 
     path('lesson/', include('lessonTable.urls')),
+    
+    path('chat/', include('AI.urls')),
 
 ]

@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: rgb(153, 182, 245, 0.1);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+
+        html, #app {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 美化导航条 */
+        .beautiful-navbar {
+            background: linear-gradient(90deg, rgba(84, 84, 114, 0.15) 0%, rgba(176, 200, 247, 0.1) 100%);
+            backdrop-filter: blur(15px);
+            border: none;
+            border-bottom: 1px solid rgba(176, 200, 247, 0.3);
+            box-shadow: 0 8px 32px rgba(84, 84, 114, 0.15), 0 2px 8px rgba(0, 0, 0, 0.05);
+            height: 80px;
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 50px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+
+        .beautiful-navbar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(176, 200, 247, 0.2), transparent);
+            animation: shimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            z-index: 2;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-img {
+            width: 80px;
+            height: 80px;
+            transition: transform 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .logo-img:hover {
+            transform: rotate(5deg) scale(1.1);
+        }
+
+        .logo-text {
+            color: rgb(84, 84, 114);
+            font-size: 28px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            letter-spacing: 2px;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            z-index: 2;
+        }
+
+        .beautiful-navbar .el-menu-item {
+            background: rgba(176, 200, 247, 0.2) !important;
+            border: 1px solid rgba(176, 200, 247, 0.3) !important;
+            border-radius: 25px !important;
+            color: rgb(84, 84, 114) !important;
+            font-weight: 500 !important;
+            padding: 0 25px !important;
+            margin: 0 5px !important;
+            height: 45px !important;
+            line-height: 43px !important;
+            transition: all 0.3s ease !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+
+        .beautiful-navbar .el-menu-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(176, 200, 247, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .beautiful-navbar .el-menu-item:hover {
+            background: rgba(176, 200, 247, 0.4) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+            border-color: rgba(176, 200, 247, 0.5) !important;
+        }
+
+        .beautiful-navbar .el-menu-item:hover::before {
+            left: 100%;
+        }
+
+        .beautiful-navbar .el-menu-item.is-active {
+            background: rgba(176, 200, 247, 0.5) !important;
+            border-color: rgba(176, 200, 247, 0.7) !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .chat-container {
+            max-width: 1000px;
+            width: 1000px;
+            height: 700px;
+            margin: 0 auto;
+            background-color: rgb(176, 200, 247, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, .12), 0 0 6px rgba(0,0,0,.04);
+            border: 1px solid rgba(176, 200, 247, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease-out forwards;
+            position: relative;
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0px);
+            }
+        }
+
+        .chat-header {
+            padding: 20px 30px;
+            background: linear-gradient(90deg, rgba(176, 200, 247, 0.3), rgba(176, 200, 247, 0.1));
+            border-bottom: 1px solid rgba(176, 200, 247, 0.3);
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(176, 200, 247, 0.2), transparent);
+            animation: headerShimmer 6s ease-in-out infinite;
+        }
+
+        @keyframes headerShimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+
+        .ai-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            z-index: 2;
+        }
+
+        .chat-title-section {
+            z-index: 2;
+        }
+
+        .chat-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: rgb(84, 84, 114);
+            margin: 0;
+        }
+
+        .chat-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0 0 0;
+        }
+
+        .messages-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+            font-size: 12px;
+        }
+
+        .message-avatar.user {
+            background: linear-gradient(45deg, #f093fb, #f5576c);
+        }
+
+        .message-avatar.ai {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            min-width: fit-content;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 16px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .message-bubble.user {
+            background: rgba(176, 200, 247, 0.3);
+            color: rgb(84, 84, 114);
+            border: 1px solid rgba(176, 200, 247, 0.4);
+            border-top-right-radius: 4px;
+            box-shadow: 0 4px 12px rgba(176, 200, 247, 0.2);
+        }
+
+        .message-bubble.ai {
+            background: rgba(176, 200, 247, 0.3);
+            color: rgb(84, 84, 114);
+            border: 1px solid rgba(176, 200, 247, 0.4);
+            border-top-left-radius: 4px;
+            box-shadow: 0 4px 12px rgba(176, 200, 247, 0.2);
+        }
+
+        .message-bubble::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .message-bubble::-webkit-scrollbar-track {
+            background: rgba(176, 200, 247, 0.1);
+        }
+
+        .message-bubble::-webkit-scrollbar-thumb {
+            background: rgba(176, 200, 247, 0.4);
+            border-radius: 2px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .input-area {
+            padding: 25px 30px;
+            background: linear-gradient(90deg, rgba(176, 200, 247, 0.1), rgba(176, 200, 247, 0.05));
+            border-top: 1px solid rgba(176, 200, 247, 0.3);
+            border-radius: 0 0 15px 15px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper {
+            flex: 1;
+        }
+
+        .input-wrapper .el-input__inner {
+            border-radius: 25px;
+            border: 2px solid rgba(176, 200, 247, 0.3);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 20px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            min-height: 50px;
+        }
+
+        .input-wrapper .el-input__inner:focus {
+            border-color: rgba(176, 200, 247, 0.6);
+            box-shadow: 0 0 0 3px rgba(176, 200, 247, 0.1);
+        }
+
+        .send-button {
+            min-width: 60px;
+            height: 50px;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .send-button:disabled {
+            background: linear-gradient(45deg, #ccc, #999);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 20px;
+            background: rgba(176, 200, 247, 0.2);
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            max-width: 80px;
+            border: 1px solid rgba(176, 200, 247, 0.3);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgb(84, 84, 114);
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .welcome-message {
+            color: #666;
+            font-size: 16px;
+            margin: 50px 20px;
+            padding: 30px;
+            background: rgba(176, 200, 247, 0.1);
+            border-radius: 15px;
+            border: 2px dashed rgba(176, 200, 247, 0.3);
+            animation: welcomePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes welcomePulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        .welcome-message h3 {
+            color: rgb(84, 84, 114);
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .status-area {
+            padding: 15px 30px;
+            background: rgba(176, 200, 247, 0.05);
+            border-top: 1px solid rgba(176, 200, 247, 0.2);
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+
+        .messages-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-area::-webkit-scrollbar-track {
+            background: rgba(176, 200, 247, 0.1);
+            border-radius: 3px;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb {
+            background: rgba(176, 200, 247, 0.4);
+            border-radius: 3px;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb:hover {
+            background: rgba(176, 200, 247, 0.6);
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                height: 600px;
+                margin: 0 auto;
+            }
+
+            .beautiful-navbar {
+                padding: 0 20px;
+            }
+
+            .nav-menu {
+                gap: 5px;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+
+            .input-area {
+                padding: 15px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% verbatim %}
+    <div id="app">
+        <!-- 导航栏 -->
+        <div>
+            <el-menu mode="horizontal" default-active="3" class="beautiful-navbar">
+                <div class="nav-left">
+                    <div class="logo-section">
+                        <div class="logo-img">
+                            <img src="/static/img/ChatGPT Image 2025年8月5日 10_46_55.png" alt="Logo">
+                        </div>
+                        <div class="logo-text">备忘录</div>
+                    </div>
+                    <div class="nav-menu" style="margin-left: 120px;">
+                        <el-menu-item index="1" @click="goToNotice">备忘录</el-menu-item>
+                        <el-menu-item index="2" @click="goToLesson">课表</el-menu-item>
+                        <el-menu-item index="3">Chat</el-menu-item>
+                    </div>
+                    <div class="username" style="margin-left: 700px; z-index: 3;">
+                        你好！{{user_name}}
+                        <a href="/" style="margin-left: 10px; color: rgb(84, 84, 114);">退出</a>
+                    </div>
+                </div>
+            </el-menu>
+        </div>
+
+        <!-- 聊天容器 -->
+        <div class="chat-container">
+            <!-- 聊天头部 -->
+            <div class="chat-header">
+                <div class="ai-avatar"><i class="el-icon-s-comment"></i></div>
+                <div class="chat-title-section">
+                    <h3 class="chat-title">AI智能助手</h3>
+                    <p class="chat-subtitle">我是您的AI助手，有什么可以帮助您的吗？</p>
+                </div>
+            </div>
+
+            <!-- 消息区域 -->
+            <div class="messages-area" ref="messagesArea">
+                <!-- 欢迎消息 -->
+                <div class="welcome-message" v-if="conversationHistory.length === 0 && !isLoading">
+                    <h3>👋 欢迎使用AI智能助手！</h3>
+                    <p>我可以帮助您解答问题、提供建议或者协助您完成各种任务。<br>请在下方输入您的问题开始对话吧！</p>
+                </div>
+
+                <!-- 消息列表 -->
+                <div v-for="(message, index) in conversationHistory" :key="index" :class="['message', message.type]">
+                    <div :class="['message-avatar', message.type]">
+                        {{ message.type === 'user' ? '我' : 'AI' }}
+                    </div>
+                    <div>
+                        <div :class="['message-bubble', message.type]" v-html="formatContent(message.content)">
+                        </div>
+                        <div class="message-time">{{ message.time }}</div>
+                    </div>
+                </div>
+                <!-- <div>
+                    <h1 v-model="answer">{{answer}}</h1>
+                </div> -->
+
+                <!-- AI打字指示器 -->
+                <div v-if="isLoading" class="message ai">
+                    <div class="message-avatar ai">AI</div>
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-area">
+                <div class="input-container">
+                    <div class="input-wrapper">
+                        <el-input
+                            placeholder="请输入您的问题..."
+                            v-model="question"
+                            @keydown.enter.exact.prevent="submit"
+                            :disabled="isLoading"
+                            clearable>
+                        </el-input>
+                    </div>
+                    <button class="send-button" @click="submit" :disabled="!question.trim() || isLoading">
+                        <span v-if="isLoading">⏳</span>
+                        <span v-else>📤</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 状态区域 -->
+            <div class="status-area">
+                <span v-if="isLoading">AI正在思考中...</span>
+                <span v-else-if="question">按 Enter 发送消息</span>
+                <span v-else>准备就绪，等待您的提问</span>
+            </div>
+        </div>
+    </div>
+    {% endverbatim %}
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script>
+        const app = new Vue({
+            el: '#app',
+            data: {
+                question: '',
+                answer: '',
+                user_name: '',
+                user_token: '',
+                user_id: '',
+                isLoading: false,
+                conversationHistory: []
+            },
+
+            created() {
+                this.user_token = new URLSearchParams(window.location.search).get('token');
+                this.user_id = new URLSearchParams(window.location.search).get('id');
+                this.getUser();
+            },
+
+            methods: {
+                goToNotice() {
+                    window.location.href = `/notice/?id=${this.user_id}&token=${this.user_token}`;
+                },
+
+                goToLesson() {
+                    window.location.href = `/lesson/table/?id=${this.user_id}&token=${this.user_token}`;
+                },
+
+                async getUser() {
+                    try {
+                        const response = await fetch(`/api/login/?id=${this.user_id}&token=${this.user_token}`);
+                        if (!response.ok) {
+                            this.$message.error('获取数据失败');
+                            return;
+                        }
+
+                        const result = await response.json();
+                        this.user_name = result.Login_Data.find(user => user.id === Number(this.user_id)).username;
+
+                    } catch (error) {
+                        this.$message.error('请求错误');
+                        console.error('Get User Error:', error);
+                    }
+                },
+
+                formatContent(content) {
+                    // 清理多余空白并转义 HTML 字符以防止 XSS
+                    if (!content) return '';
+                    let cleanContent = content.replace(/\s+/g, ' ').trim();
+                    // 将换行符转换为 <br> 以保留必要的换行
+                    cleanContent = cleanContent.replace(/\n/g, '<br>');
+                    // 防止意外的 HTML 标签（只允许 <br>）
+                    cleanContent = cleanContent.replace(/<(?!br\s*\/?)[^>]+>/g, '');
+                    return cleanContent;
+                },
+
+                async submit() {
+                    if (!this.question.trim() || this.isLoading) return;
+
+                    // 添加用户消息到历史记录
+                    this.addMessage('user', this.question.trim());
+                    const userQuestion = this.question.trim();
+                    this.question = '';
+                    this.isLoading = true;
+
+                    try {
+                        const response = await fetch(`/chat/api/?id=${this.user_id}&token=${this.user_token}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': this.getCSRFToken()
+                            },
+                            body: JSON.stringify({
+                                prompt: userQuestion,
+                                user: this.user_id,
+                            }),
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('API请求失败');
+                        }
+
+                        const reader = response.body.getReader();
+                        
+                       this.addMessage('ai', this.answer);
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+
+                            console.log("value: ", value)
+
+                            const decoder = new TextDecoder("utf-8");
+                            const chunkText = decoder.decode(value);
+
+                            console.log(chunkText)
+
+                            //this.conversationHistory[this.conversationHistory.length -1].content += chunkText
+                            var data = this.conversationHistory[this.conversationHistory.length -1];
+                            data.content = data.content + chunkText
+                            this.$set(this.conversationHistory, this.conversationHistory.length -1, data)
+                            // 处理数据块（value是Uint8Array类型）
+                            //this.answer += chunkText;
+
+                        }
+
+                       /* setInterval(item => {
+                            this.answer += "你好"
+                            console.log(this.answer)
+                        },1000)*/
+
+                        // 添加AI回复到历史记录
+                        //this.addMessage('ai', this.answer);
+
+                        console.log("answer:", this.answer);
+
+                    } catch (error) {
+                        console.error('Chat API Error:', error);
+                        this.$message.error('提问失败，请稍后再试');
+                        this.addMessage('ai', '抱歉，我现在无法回答您的问题，请稍后再试。');
+                    } finally {
+                        this.isLoading = false;
+                        this.scrollToBottom();
+                    }
+                },
+
+                addMessage(type, content) {
+                    const now = new Date();
+                    const time = now.toLocaleTimeString('zh-CN', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    this.conversationHistory.push({
+                        type: type,
+                        content: content,
+                        time: time
+                    });
+
+                    this.$nextTick(() => {
+                        this.scrollToBottom();
+                    });
+                },
+
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const messagesArea = this.$refs.messagesArea;
+                        if (messagesArea) {
+                            messagesArea.scrollTop = messagesArea.scrollHeight;
+                        }
+                    });
+                },
+
+                getCSRFToken() {
+                    const cookieValue = document.cookie
+                        .split('; ')
+                        .find(row => row.startsWith('csrftoken='))
+                        ?.split('=')[1];
+                    return cookieValue || '';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

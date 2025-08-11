@@ -171,8 +171,9 @@ class NoticeDataDerail(APIView):
             # print("验证失败:",s.errors)
             return Response({"errors": s.errors}, status=400)
         else:
+            print("serializer:",s.validated_data)
             ns = Notice.objects.create(**s.validated_data)
-            s = NoticeSerializers(ns)
+            s = NoticeSerializers(ns)    
             return Response({"notices": s.data}, status=201)
     
     def get(self, request):

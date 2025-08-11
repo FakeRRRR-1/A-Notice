@@ -352,6 +352,7 @@
                     <div class="nav-menu" style="margin-left: 120px;">
                         <el-menu-item index="1" @click="goToNotice">备忘录</el-menu-item>
                         <el-menu-item index="2">课表</el-menu-item>
+                        <el-menu-item index="3" @click="goToChat">Chat</el-menu-item>
                     </div>
                     <div class="username" style="margin-left: 1000px">
                         你好！{{user_name}}
@@ -528,6 +529,9 @@
             methods: {
                 goToNotice() {
                     window.location.href = `/notice/?id=${this.user_id}&token=${this.user_token}`;
+                },
+                goToChat() {
+                    window.location.href = `/chat/?id=${this.user_id}&token=${this.user_token}`;
                 },
                 handleExceed(files, fileList) {
                     this.fileList = [fileList[1]];           
