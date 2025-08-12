@@ -6,10 +6,11 @@ from rest_framework import serializers
 from .models import ChatTable
 from rest_framework import status
 from app.models import LoginData
+from lessonTable.models import LessonTable
 from openai import OpenAI
 from dotenv import load_dotenv
 from django.http import StreamingHttpResponse
-
+import json
 import requests
 
 # Create your views here.
@@ -41,6 +42,12 @@ class ChatSerializer(serializers.Serializer):
     class Meta:
         model = ChatTable
         fields = '__all__'
+        
+class LessonSerializer(serializers.ModelSerializer):   
+    
+    class Meta:
+        model = LessonTable
+        fields = '__all__'
     
 
 class chat_ai(APIView):
@@ -53,19 +60,22 @@ class chat_ai(APIView):
         #     # print("验证失败:",s.errors)
         #     return Response({"errors": serializer.errors}, status=400)
         
+        userID = request.GET.get('id')
+        
+        print(type(userID))
+        
+        try:
+            user_instance = LoginData.objects.get(id=userID)
+            print("user_instance:\n", user_instance)
+        except LoginData.DoesNotExist:
+            return StreamingHttpResponse({"error": "用户不存在"}, status=status.HTTP_404_NOT_FOUND)
+        
         prompt = request.data.get('prompt')
         
         if not prompt:
             return Response({"status": "error", "error": "没有输入"}, status=400)
         
         # prompt = serializer.validated_data.question
-        
-        userID = request.GET.get('id')
-        
-        try:
-            user_instance = LoginData.objects.get(id=userID)
-        except LoginData.DoesNotExist:
-            return StreamingHttpResponse({"error": "用户不存在"}, status=status.HTTP_404_NOT_FOUND)
         
         try:
         
@@ -76,16 +86,16 @@ class chat_ai(APIView):
             #     user = userID
             # )
             
-            res = response.choices[0].message.content
+            # res = response.choices[0].message.content
             
-            res = ' '.join(res.split())
+            # res = ' '.join(res.split())
             
-            print("response:", res)
+            # print("response:", res)
             
-            return Response({
-                "status": "success",
-                "response": res
-            })
+            # return Response({
+            #     "status": "success",
+            #     "response": res
+            # })
         except Exception as e:
             
             return Response({"error": str(e)}, status=500)

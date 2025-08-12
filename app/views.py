@@ -87,8 +87,8 @@ class RegisterDataView(APIView):
         s = RegisterSerializers(data=request.data)
         
         if not s.is_valid():
-            print(s.errors)
-            if s.errors['username'][0] == "具有 用户名 的 login data 已存在。":
+            print("error:\n", s.errors['email'][0])
+            if s.errors['email'][0] == "具有 用户名 的 login data 已存在。":
                 return Response({"error": "用户名已存在"}, status=400)
             elif s.errors['email'][0] == "具有 邮箱 的 login data 已存在。":
                 return Response({"error": "邮箱号已存在"}, status=400)

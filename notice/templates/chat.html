@@ -12,6 +12,7 @@
             min-height: 100vh;
             padding: 20px;
             margin: 0;
+            padding: 0;
         }
 
         html, #app {
@@ -276,6 +277,7 @@
             font-weight: bold;
             flex-shrink: 0;
             font-size: 12px;
+
         }
 
         .message-avatar.user {
@@ -293,10 +295,13 @@
             border-radius: 18px;
             font-size: 16px;
             line-height: 1.5;
-            white-space: pre-wrap;
-            word-break: break-word;
             max-height: 300px;
             overflow-y: auto;
+            white-space: pre-wrap;        
+            word-wrap: break-word;        
+            word-break: break-word;       
+            overflow-wrap: break-word;   
+            hyphens: auto;
         }
 
         .message-bubble.user {
@@ -606,7 +611,6 @@
                     </button>
                 </div>
             </div>
-
             <!-- 状态区域 -->
             <div class="status-area">
                 <span v-if="isLoading">AI正在思考中...</span>
@@ -724,14 +728,6 @@
 
                         }
 
-                       /* setInterval(item => {
-                            this.answer += "你好"
-                            console.log(this.answer)
-                        },1000)*/
-
-                        // 添加AI回复到历史记录
-                        //this.addMessage('ai', this.answer);
-
                         console.log("answer:", this.answer);
 
                     } catch (error) {
@@ -777,7 +773,7 @@
                         .find(row => row.startsWith('csrftoken='))
                         ?.split('=')[1];
                     return cookieValue || '';
-                }
+                },
             }
         });
     </script>
