@@ -277,7 +277,6 @@
             font-weight: bold;
             flex-shrink: 0;
             font-size: 12px;
-
         }
 
         .message-avatar.user {
@@ -297,11 +296,12 @@
             line-height: 1.5;
             max-height: 300px;
             overflow-y: auto;
-            white-space: pre-wrap;        
-            word-wrap: break-word;        
-            word-break: break-word;       
-            overflow-wrap: break-word;   
-            hyphens: auto;
+            /* 修复换行的关键样式 */
+            white-space: pre-wrap;        /* 保留换行符和空格 */
+            word-wrap: break-word;        /* 长单词自动换行 */
+            word-break: break-word;       /* 在单词内断行 */
+            overflow-wrap: break-word;    /* CSS3 标准的换行处理 */
+            hyphens: auto;               /* 自动连字符 */
         }
 
         .message-bubble.user {
@@ -531,7 +531,7 @@
                 <div class="nav-left">
                     <div class="logo-section">
                         <div class="logo-img">
-                            <img src="/static/img/ChatGPT Image 2025年8月5日 10_46_55.png" alt="Logo">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(45deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">AI</div>
                         </div>
                         <div class="logo-text">备忘录</div>
                     </div>
@@ -573,14 +573,12 @@
                         {{ message.type === 'user' ? '我' : 'AI' }}
                     </div>
                     <div>
-                        <div :class="['message-bubble', message.type]" v-html="formatContent(message.content)">
+                        <!-- 关键修改：使用 v-text 而不是 v-html，并且不调用 formatContent -->
+                        <div :class="['message-bubble', message.type]" v-text="message.content">
                         </div>
                         <div class="message-time">{{ message.time }}</div>
                     </div>
                 </div>
-                <!-- <div>
-                    <h1 v-model="answer">{{answer}}</h1>
-                </div> -->
 
                 <!-- AI打字指示器 -->
                 <div v-if="isLoading" class="message ai">
@@ -629,7 +627,7 @@
             data: {
                 question: '',
                 answer: '',
-                user_name: '',
+                user_name: 'Test User',
                 user_token: '',
                 user_id: '',
                 isLoading: false,
@@ -668,15 +666,13 @@
                     }
                 },
 
+                // 修复后的 formatContent 函数，可选使用
                 formatContent(content) {
-                    // 清理多余空白并转义 HTML 字符以防止 XSS
                     if (!content) return '';
-                    let cleanContent = content.replace(/\s+/g, ' ').trim();
-                    // 将换行符转换为 <br> 以保留必要的换行
-                    cleanContent = cleanContent.replace(/\n/g, '<br>');
-                    // 防止意外的 HTML 标签（只允许 <br>）
-                    cleanContent = cleanContent.replace(/<(?!br\s*\/?)[^>]+>/g, '');
-                    return cleanContent;
+                    // 只进行基本的安全处理，保留换行符
+                    return content
+                        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // 移除script标签
+                        .replace(/<[^>]*>/g, ''); // 移除其他HTML标签，但保留文本内容
                 },
 
                 async submit() {
@@ -707,28 +703,29 @@
 
                         const reader = response.body.getReader();
                         
-                       this.addMessage('ai', this.answer);
+                        // 先添加一个空的AI消息
+                        this.addMessage('ai', '');
+                        
                         while (true) {
                             const { done, value } = await reader.read();
                             if (done) break;
 
-                            console.log("value: ", value)
-
                             const decoder = new TextDecoder("utf-8");
                             const chunkText = decoder.decode(value);
 
-                            console.log(chunkText)
-
-                            //this.conversationHistory[this.conversationHistory.length -1].content += chunkText
-                            var data = this.conversationHistory[this.conversationHistory.length -1];
-                            data.content = data.content + chunkText
-                            this.$set(this.conversationHistory, this.conversationHistory.length -1, data)
-                            // 处理数据块（value是Uint8Array类型）
-                            //this.answer += chunkText;
-
+                            // 更新最后一条AI消息的内容
+                            const lastIndex = this.conversationHistory.length - 1;
+                            const lastMessage = this.conversationHistory[lastIndex];
+                            lastMessage.content += chunkText;
+                            
+                            // 强制更新视图
+                            this.$set(this.conversationHistory, lastIndex, lastMessage);
+                            
+                            // 滚动到底部
+                            this.$nextTick(() => {
+                                this.scrollToBottom();
+                            });
                         }
-
-                        console.log("answer:", this.answer);
 
                     } catch (error) {
                         console.error('Chat API Error:', error);
@@ -738,6 +735,11 @@
                         this.isLoading = false;
                         this.scrollToBottom();
                     }
+                },
+                
+                //分析一下我的课表数据
+                async analyseData(){
+
                 },
 
                 addMessage(type, content) {

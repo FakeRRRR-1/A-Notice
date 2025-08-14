@@ -1,4 +1,3 @@
-import os
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,32 +9,12 @@ from lessonTable.models import LessonTable
 from openai import OpenAI
 from dotenv import load_dotenv
 from django.http import StreamingHttpResponse
-import json
-import requests
 
 # Create your views here.
 
 def chat(request):
     
     return render(request, "chat.html")
-
-def generate(prompt):
-    
-    client = OpenAI(api_key= "sk-fvincrhushambjtzxemtssjzqkgvqobctfjvvjlhcuvstyrm", base_url="https://api.siliconflow.cn/v1")
-    response = client.chat.completions.create(  
-        model="Qwen/QVQ-72B-Preview",  
-        messages=[{
-            "role": "user",  
-            "content": prompt,
-        }],  
-        temperature=0.7,  
-        max_tokens=4096,
-        stream = True
-    )  
-
-    for chunk in response:
-        if chunk.choices[0].delta.content is not None:
-            yield chunk.choices[0].delta.content
 
 class ChatSerializer(serializers.Serializer):
     
@@ -48,21 +27,34 @@ class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonTable
         fields = '__all__'
-    
 
 class chat_ai(APIView):
     
+    def generate(self, prompt):
+        client = OpenAI(api_key= "sk-fvincrhushambjtzxemtssjzqkgvqobctfjvvjlhcuvstyrm", base_url="https://api.siliconflow.cn/v1")
+        response = client.chat.completions.create(  
+            model="Pro/Qwen/Qwen2-7B-Instruct",  
+            messages=[
+                {"role": "system", "content": "你是我的智能学生助手这个系统的ai助手"},
+                {"role": "user",  "content": prompt},
+                
+            ],  
+            temperature=0.7,  
+            max_tokens=4096,
+            stream = True,
+            extra_body={
+                "thinking_budget": 1024
+            },
+        ) 
+
+        for chunk in response:
+            if chunk.choices[0].delta.content is not None:
+                yield chunk.choices[0].delta.content
+                
+    
     def post(self, request):
         
-        # serializer = ChatSerializer(data=request.data)
-        
-        # if not serializer.is_valid():
-        #     # print("验证失败:",s.errors)
-        #     return Response({"errors": serializer.errors}, status=400)
-        
         userID = request.GET.get('id')
-        
-        print(type(userID))
         
         try:
             user_instance = LoginData.objects.get(id=userID)
@@ -79,7 +71,7 @@ class chat_ai(APIView):
         
         try:
         
-            return StreamingHttpResponse(generate(prompt), content_type="text/event-stream")
+            return StreamingHttpResponse(self.generate(prompt), content_type="text/event-stream")
             
             # ChatTable.objects.create(
                 
